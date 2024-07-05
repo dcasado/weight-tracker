@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO measurements (user_id, date_time, weight) VALUES ($1, $2, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Timestamptz",
+        "Float8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "aed12b4f901c2acc5d4ff8f9dc43047be6b597e52893311af286bafd815821ef"
+}

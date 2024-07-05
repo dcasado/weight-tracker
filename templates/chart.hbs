@@ -1,0 +1,121 @@
+{{#* inline "head"}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{/inline}}
+{{#*inline "content"}}
+<div id="chart-div">
+    <div id="dates-div">
+        <label for="start-date">Start date
+            <input type="date" id="start-date" name="start-date" />
+        </label>
+        <label for="end-date">End date
+            <input type="date" id="end-date" name="end-date" />
+        </label>
+        <input id="filter-input" type="button" value="Filter" onclick="filter()" />
+    </div>
+    <canvas id="weight-chart"></canvas>
+    <form action="/table/{{user_id}}">
+        <input type="submit" value="Go to table" />
+    </form>
+</div>
+<script>
+    const userLocale =
+        navigator.languages && navigator.languages.length
+            ? navigator.languages[0]
+            : navigator.language;
+
+    const measurements = {{{ measurements }}};
+
+    const startDate = new Date("{{ start_date }}");
+    const startDateInput = document.getElementById('start-date');
+    startDateInput.valueAsDate = new Date(Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()));
+
+    const endDate = new Date("{{ end_date }}");
+    const endDateInput = document.getElementById('end-date');
+    endDateInput.valueAsDate = new Date(Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()));
+
+    let dateTimes = [];
+    let weights = [];
+
+    let currentDate = startDate;
+    const dateOptions = { year: 'numeric', month: 'numeric', day: 'numeric' };
+    while (currentDate <= endDate) {
+        currentDateString = currentDate.toLocaleDateString(userLocale, dateOptions)
+        dateTimes.push(currentDateString);
+
+        for (let i = 0; i < measurements.length; i++) {
+            const dateString = new Date(measurements[i].date_time).toLocaleDateString(userLocale, dateOptions);
+            const weight = measurements[i].weight;
+
+            if (currentDateString === dateString) {
+                weights.push(weight);
+                break;
+            }
+
+            if (i === measurements.length - 1) {
+                weights.push(null);
+            }
+        }
+
+        currentDate = addDay(currentDate);
+    }
+
+    const weightChart = document.getElementById('weight-chart');
+    chart = new Chart(weightChart, {
+        type: 'line',
+        data: {
+            labels: dateTimes,
+            datasets: [{
+                label: 'Weight',
+                data: weights,
+                borderWidth: 1,
+                tension: 0.25,
+                spanGaps: true
+            }]
+        }
+    });
+
+    function addDay(date) {
+        var result = new Date(date);
+        result.setDate(result.getDate() + 1);
+        return result;
+    }
+
+    function filter() {
+        const startDate = getStartDateFromInput();
+        const endDate = getEndDateFromInput();
+
+        window.location.href = "/chart/{{user_id}}?start-date=" + startDate.toISOString() + "&end-date=" + endDate.toISOString();
+    }
+
+    function getStartDateFromInput() {
+        const startDateInput = document.getElementById('start-date');
+        let startDate = startDateInput.value;
+
+        if (startDate === undefined || startDate === '') {
+            startDate = new Date();
+            startDate.setDate(startDate.getDate() - 7);
+            startDateInput.valueAsDate = startDate;
+        } else {
+            startDate = new Date(startDate + 'T00:00:00.000');
+        }
+
+        return startDate;
+    }
+
+    function getEndDateFromInput() {
+        const endDateInput = document.getElementById('end-date')
+        let endDate = endDateInput.value;
+
+        if (endDate === undefined || endDate === '') {
+            endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+            endDateInput.valueAsDate = endDate;
+        } else {
+            endDate = new Date(endDate + 'T23:59:59.999')
+        }
+
+        return endDate;
+    }
+</script>
+{{/inline}}
+{{> base}}

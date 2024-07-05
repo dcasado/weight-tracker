@@ -1,0 +1,33 @@
+{{#*inline "content"}}
+<div id="table-div">
+    <table>
+        <tr>
+            <th>Date</th>
+            <th>Weight</th>
+            <th>Action</th>
+        </tr>
+        {{#each measurements}}
+        <tr>
+            <td>{{date_time}}</td>
+            <td>{{weight}}</td>
+            <td>
+                <input type="button" value="Delete" onclick="deleteMeasurement({{id}})" />
+            </td>
+        </tr>
+        {{/each}}
+    </table>
+</div>
+<script>
+    function deleteMeasurement(id) {
+        const confirmText = "Do you really want to delete the measurement?";
+        if (confirm(confirmText) === true) {
+            fetch('/api/measurements/' + id, {
+                method: 'DELETE',
+            }).then(response => {
+                window.location.reload();
+            });
+        }
+    }
+</script>
+{{/inline}}
+{{> base}}

@@ -1,0 +1,65 @@
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 800px;
+    margin: auto;
+    padding: 0 1em;
+    font-family: Verdana, sans-serif;
+}
+
+#users-div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+#users-div input {
+    margin: 2em;
+}
+
+#user-inputs {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+#dates-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#dates-div input {
+    margin: 0.5em;
+}
+
+#chart-div {
+    margin-top: 0.5em;
+}
+
+body input {
+    margin: 1em;
+}
+
+#table-div {
+    margin-top: 2em;
+    margin-bottom: 1em;
+}
+
+table,
+th,
+td {
+    border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
+    border: 1px solid black;
+}
+
+th,
+td {
+    padding: 1em;
+    text-align: center;
+}

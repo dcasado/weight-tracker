@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, user_id, date_time, weight FROM measurements WHERE user_id = $1 ORDER BY date_time ASC",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "user_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "date_time",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "weight",
+        "type_info": "Float8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "94d2e49d72949b89c039b51e6dd54e08ff629809375dfb027128290473defb3d"
+}
