@@ -4,7 +4,7 @@ use axum::{
     routing::get,
     Router,
 };
-use chrono::{DateTime, FixedOffset};
+use chrono::{DateTime, Local};
 use serde::Serialize;
 use serde_json::json;
 
@@ -27,7 +27,7 @@ async fn render_table(
     #[derive(Serialize)]
     struct MeasurementResponse {
         id: i32,
-        date_time: DateTime<FixedOffset>,
+        date_time: String,
         weight: f64,
     }
 
@@ -37,7 +37,9 @@ async fn render_table(
             .into_iter()
             .map(|m: Measurement| MeasurementResponse {
                 id: m.id.into(),
-                date_time: m.date_time,
+                date_time: DateTime::<Local>::from(m.date_time)
+                    .format("%Y-%m-%d %H:%M")
+                    .to_string(),
                 weight: m.weight.into(),
             })
             .collect();
