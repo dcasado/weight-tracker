@@ -38,22 +38,23 @@
 
     let currentDate = startDate;
     const dateOptions = { year: 'numeric', month: 'numeric', day: 'numeric' };
+    let i = 0;
     while (currentDate <= endDate) {
         currentDateString = currentDate.toLocaleDateString(userLocale, dateOptions)
         dateTimes.push(currentDateString);
 
-        for (let i = 0; i < measurements.length; i++) {
+        if (i < measurements.length) {
             const dateString = new Date(measurements[i].date_time).toLocaleDateString(userLocale, dateOptions);
-            const weight = measurements[i].weight;
 
             if (currentDateString === dateString) {
+                const weight = measurements[i].weight;
                 weights.push(weight);
-                break;
-            }
-
-            if (i === measurements.length - 1) {
+                i += 1;
+            } else {
                 weights.push(null);
             }
+        } else {
+            weights.push(null);
         }
 
         currentDate = addDay(currentDate);
