@@ -10,7 +10,12 @@ use chrono::{DateTime, FixedOffset};
 use serde::Serialize;
 use serde_json::json;
 
-use crate::{app_state::AppState, domain::measurement::Measurement, error::ApiError, repositories};
+use crate::{
+    app_state::AppState,
+    domain::{measurement::Measurement, user::UserId},
+    error::ApiError,
+    repositories,
+};
 
 pub fn chart(state: AppState) -> Router {
     Router::new()
@@ -20,10 +25,12 @@ pub fn chart(state: AppState) -> Router {
 
 async fn render_chart(
     State(state): State<AppState>,
-    Path(user_id): Path<i32>,
+    Path(user_id): Path<i64>,
     Query(params): Query<HashMap<String, String>>,
 ) -> Result<Html<String>, ApiError> {
-    let user_id = repositories::users::find_user(&state.pool, user_id)
+    let user_id: UserId = UserId::new(user_id);
+
+    let user_id = repositories::users::find_user(&state.pool, &user_id)
         .await?
         .ok_or(ApiError::UserNotFound)?
         .id;
@@ -43,8 +50,13 @@ async fn render_chart(
     };
 
     #[derive(Serialize)]
+    struct UserIdResponse {
+        id: i64,
+    }
+
+    #[derive(Serialize)]
     struct MeasurementResponse {
-        id: i32,
+        id: i64,
         date_time: String,
         weight: f64,
     }
@@ -52,9 +64,9 @@ async fn render_chart(
     let measurements: Vec<MeasurementResponse> =
         repositories::measurements::find_measurements_between_dates(
             &state.pool,
-            user_id.as_ref(),
-            start_date,
-            end_date,
+            &user_id,
+            &start_date,
+            &end_date,
         )
         .await?
         .into_iter()
@@ -67,7 +79,7 @@ async fn render_chart(
 
     let data = json!({
         "title": "Chart",
-        "user_id": user_id.as_ref(),
+        "user_id": UserIdResponse{id: user_id.into()},
         "start_date": start_date,
         "end_date": end_date,
         "measurements": serde_json::to_string(&measurements).map_err(|_| ApiError::Unknown)?

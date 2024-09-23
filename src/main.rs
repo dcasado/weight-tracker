@@ -1,5 +1,10 @@
 use axum::{routing::get_service, Router};
-use sqlx::postgres::PgPoolOptions;
+use sqlx::{
+    migrate::MigrateDatabase,
+    sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions},
+    Sqlite,
+};
+use std::str::FromStr;
 use tokio::signal;
 use tower_http::services::ServeDir;
 use weight_tracker::{app_state::AppState, configuration, error::ApiError, routes, templates};
@@ -8,9 +13,22 @@ use weight_tracker::{app_state::AppState, configuration, error::ApiError, routes
 async fn main() -> Result<(), ApiError> {
     let configuration = configuration::get_configuration();
 
-    let pool = PgPoolOptions::new()
+    if !Sqlite::database_exists(&configuration.database.url)
+        .await
+        .unwrap_or(false)
+    {
+        Sqlite::create_database(&configuration.database.url)
+            .await
+            .expect("Failed to create database");
+    }
+
+    let pool = SqlitePoolOptions::new()
         .max_connections(5)
-        .connect(&configuration.database.url)
+        .connect_with(
+            SqliteConnectOptions::from_str(&configuration.database.url)
+                .expect("Failed to create sqlite options")
+                .journal_mode(SqliteJournalMode::Wal),
+        )
         .await
         .expect("Failed to create database connection pool");
 

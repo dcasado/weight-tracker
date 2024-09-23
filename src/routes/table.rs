@@ -8,7 +8,12 @@ use chrono::{DateTime, Local};
 use serde::Serialize;
 use serde_json::json;
 
-use crate::{app_state::AppState, domain::measurement::Measurement, error::ApiError, repositories};
+use crate::{
+    app_state::AppState,
+    domain::{measurement::Measurement, user::UserId},
+    error::ApiError,
+    repositories,
+};
 
 pub fn table(state: AppState) -> Router {
     Router::new()
@@ -18,21 +23,24 @@ pub fn table(state: AppState) -> Router {
 
 async fn render_table(
     State(state): State<AppState>,
-    Path(user_id): Path<i32>,
+    Path(user_id): Path<i64>,
 ) -> Result<Html<String>, ApiError> {
-    let user = repositories::users::find_user(&state.pool, user_id)
+    let user_id = UserId::new(user_id);
+
+    let user_id = repositories::users::find_user(&state.pool, &user_id)
         .await?
-        .ok_or(ApiError::UserNotFound)?;
+        .ok_or(ApiError::UserNotFound)?
+        .id;
 
     #[derive(Serialize)]
     struct MeasurementResponse {
-        id: i32,
+        id: i64,
         date_time: String,
         weight: f64,
     }
 
     let measurements: Vec<MeasurementResponse> =
-        repositories::measurements::find_measurements(&state.pool, user.id.as_ref())
+        repositories::measurements::find_measurements(&state.pool, &user_id)
             .await?
             .into_iter()
             .map(|m: Measurement| MeasurementResponse {

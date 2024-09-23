@@ -1,12 +1,11 @@
 -- Add up migration script here
 CREATE TABLE measurements (
-    id SERIAL PRIMARY KEY,
-    user_id SERIAL,
-    date_time TIMESTAMPTZ NOT NULL,
-    weight DOUBLE PRECISION NOT NULL,
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    date_time TEXT NOT NULL,
+    weight REAL NOT NULL,
     FOREIGN KEY (user_id)
-        REFERENCES public.users (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-        NOT VALID
+        REFERENCES users(id)
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
 )

@@ -11,16 +11,22 @@ pub struct Measurement {
     pub weight: Weight,
 }
 
-pub struct MeasurementId(i32);
+pub struct MeasurementId(i64);
 
 impl MeasurementId {
-    pub fn new(value: i32) -> Self {
+    pub fn new(value: i64) -> Self {
         Self(value)
     }
 }
 
-impl From<MeasurementId> for i32 {
+impl From<MeasurementId> for i64 {
     fn from(value: MeasurementId) -> Self {
+        value.0
+    }
+}
+
+impl From<&MeasurementId> for i64 {
+    fn from(value: &MeasurementId) -> Self {
         value.0
     }
 }
@@ -38,6 +44,12 @@ impl Weight {
 
 impl From<Weight> for f64 {
     fn from(value: Weight) -> Self {
+        value.0
+    }
+}
+
+impl From<&Weight> for f64 {
+    fn from(value: &Weight) -> Self {
         value.0
     }
 }

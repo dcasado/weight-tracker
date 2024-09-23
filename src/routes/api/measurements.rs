@@ -10,13 +10,14 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use crate::app_state::AppState;
-use crate::domain::measurement::{Measurement, Weight};
+use crate::domain::measurement::{Measurement, MeasurementId, Weight};
+use crate::domain::user::UserId;
 use crate::error::ApiError;
 use crate::repositories;
 
 #[derive(Deserialize)]
 struct PostMeasurement {
-    user_id: i32,
+    user_id: i64,
     date_time: String,
     weight: f64,
 }
@@ -32,9 +33,12 @@ async fn add_measurement(
     State(state): State<AppState>,
     Json(body): Json<PostMeasurement>,
 ) -> Result<StatusCode, ApiError> {
-    let user = repositories::users::find_user(&state.pool, body.user_id)
+    let user_id: UserId = UserId::new(body.user_id);
+
+    let user_id = repositories::users::find_user(&state.pool, &user_id)
         .await?
-        .ok_or(ApiError::UserNotFound)?;
+        .ok_or(ApiError::UserNotFound)?
+        .id;
 
     let date_time = body
         .date_time
@@ -43,7 +47,7 @@ async fn add_measurement(
 
     let weight = Weight::try_from(body.weight)?;
 
-    repositories::measurements::insert_measurement(&state.pool, &user.id, &date_time, &weight)
+    repositories::measurements::insert_measurement(&state.pool, &user_id, &date_time, &weight)
         .await?;
 
     Ok(StatusCode::CREATED)
@@ -53,10 +57,10 @@ async fn get_measurements(
     State(state): State<AppState>,
     Query(params): Query<HashMap<String, String>>,
 ) -> Result<Json<Value>, ApiError> {
-    let user_id: i32 = match params.get("user_id") {
+    let user_id: UserId = UserId::new(match params.get("user_id") {
         Some(id) => id.parse().map_err(|_| ApiError::InvalidUserId)?,
         None => return Err(ApiError::MandatoryUserId),
-    };
+    });
 
     let start_date: DateTime<FixedOffset> = match params.get("start_date") {
         Some(d) => {
@@ -72,13 +76,14 @@ async fn get_measurements(
         None => return Err(ApiError::MandatoryEndDate),
     };
 
-    let user = repositories::users::find_user(&state.pool, user_id)
+    let user_id = repositories::users::find_user(&state.pool, &user_id)
         .await?
-        .ok_or(ApiError::UserNotFound)?;
+        .ok_or(ApiError::UserNotFound)?
+        .id;
 
     #[derive(Serialize)]
     struct MeasurementResponse {
-        id: i32,
+        id: i64,
         date_time: String,
         weight: f64,
     }
@@ -86,9 +91,9 @@ async fn get_measurements(
     let measurements: Vec<MeasurementResponse> =
         repositories::measurements::find_measurements_between_dates(
             &state.pool,
-            user.id.as_ref(),
-            start_date,
-            end_date,
+            &user_id,
+            &start_date,
+            &end_date,
         )
         .await?
         .into_iter()
@@ -104,9 +109,11 @@ async fn get_measurements(
 
 async fn delete_measurement(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<i64>,
 ) -> Result<StatusCode, ApiError> {
-    repositories::measurements::delete_measurement(&state.pool, id).await?;
+    let id = MeasurementId::new(id);
+
+    repositories::measurements::delete_measurement(&state.pool, &id).await?;
 
     Ok(StatusCode::NO_CONTENT)
 }

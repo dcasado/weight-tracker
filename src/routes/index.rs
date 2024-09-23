@@ -13,7 +13,7 @@ pub fn index(state: AppState) -> Router {
 async fn render_index(State(state): State<AppState>) -> Result<Html<String>, ApiError> {
     #[derive(Serialize)]
     struct UserResponse {
-        id: i32,
+        id: i64,
         name: String,
     }
 

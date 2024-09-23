@@ -1,12 +1,10 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "INSERT INTO users (name) VALUES ($1)",
   "describe": {
     "columns": [],
     "parameters": {
-      "Left": [
-        "Varchar"
-      ]
+      "Right": 1
     },
     "nullable": []
   },

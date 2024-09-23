@@ -1,35 +1,31 @@
 {
-  "db_name": "PostgreSQL",
+  "db_name": "SQLite",
   "query": "SELECT id, user_id, date_time, weight FROM measurements WHERE user_id = $1 AND date_time BETWEEN $2 AND $3 ORDER BY date_time ASC",
   "describe": {
     "columns": [
       {
-        "ordinal": 0,
         "name": "id",
-        "type_info": "Int4"
+        "ordinal": 0,
+        "type_info": "Integer"
       },
       {
-        "ordinal": 1,
         "name": "user_id",
-        "type_info": "Int4"
+        "ordinal": 1,
+        "type_info": "Integer"
       },
       {
-        "ordinal": 2,
         "name": "date_time",
-        "type_info": "Timestamptz"
+        "ordinal": 2,
+        "type_info": "Text"
       },
       {
-        "ordinal": 3,
         "name": "weight",
-        "type_info": "Float8"
+        "ordinal": 3,
+        "type_info": "Float"
       }
     ],
     "parameters": {
-      "Left": [
-        "Int4",
-        "Timestamptz",
-        "Timestamptz"
-      ]
+      "Right": 3
     },
     "nullable": [
       false,

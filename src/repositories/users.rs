@@ -1,11 +1,13 @@
-use sqlx::{Pool, Postgres};
+use sqlx::{Pool, Sqlite};
 
 use crate::{
     domain::user::{User, UserId, UserName},
     error::ApiError,
 };
 
-pub async fn insert_user(pool: &Pool<Postgres>, name: String) -> Result<(), ApiError> {
+pub async fn insert_user(pool: &Pool<Sqlite>, name: &UserName) -> Result<(), ApiError> {
+    let name: String = name.into();
+
     let _ = sqlx::query!(r#"INSERT INTO users (name) VALUES ($1)"#, name)
         .execute(pool)
         .await
@@ -14,9 +16,9 @@ pub async fn insert_user(pool: &Pool<Postgres>, name: String) -> Result<(), ApiE
     Ok(())
 }
 
-pub async fn find_users(pool: &Pool<Postgres>) -> Result<Vec<User>, ApiError> {
+pub async fn find_users(pool: &Pool<Sqlite>) -> Result<Vec<User>, ApiError> {
     struct Row {
-        id: i32,
+        id: i64,
         name: String,
     }
 
@@ -35,11 +37,13 @@ pub async fn find_users(pool: &Pool<Postgres>) -> Result<Vec<User>, ApiError> {
         .collect()
 }
 
-pub async fn find_user(pool: &Pool<Postgres>, user_id: i32) -> Result<Option<User>, ApiError> {
+pub async fn find_user(pool: &Pool<Sqlite>, user_id: &UserId) -> Result<Option<User>, ApiError> {
     struct Row {
-        id: i32,
+        id: i64,
         name: String,
     }
+
+    let user_id: i64 = user_id.into();
 
     let row = sqlx::query_as!(Row, r#"SELECT id, name FROM users where id = $1"#, user_id)
         .fetch_optional(pool)
@@ -52,7 +56,9 @@ pub async fn find_user(pool: &Pool<Postgres>, user_id: i32) -> Result<Option<Use
     }))
 }
 
-pub async fn delete_user(pool: &Pool<Postgres>, id: i32) -> Result<(), ApiError> {
+pub async fn delete_user(pool: &Pool<Sqlite>, id: &UserId) -> Result<(), ApiError> {
+    let id: i64 = id.into();
+
     let result = sqlx::query!(r#"DELETE FROM users WHERE id = $1"#, id)
         .execute(pool)
         .await

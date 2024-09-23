@@ -3,28 +3,34 @@ pub struct User {
     pub name: UserName,
 }
 
-pub struct UserId(i32);
+pub struct UserId(i64);
 
 impl UserId {
-    pub fn new(id: i32) -> Self {
+    pub fn new(id: i64) -> Self {
         Self(id)
     }
 }
 
-impl From<i32> for UserId {
-    fn from(value: i32) -> Self {
+impl From<i64> for UserId {
+    fn from(value: i64) -> Self {
         Self(value)
     }
 }
 
-impl From<UserId> for i32 {
+impl From<UserId> for i64 {
     fn from(value: UserId) -> Self {
         value.0
     }
 }
 
-impl AsRef<i32> for UserId {
-    fn as_ref(&self) -> &i32 {
+impl From<&UserId> for i64 {
+    fn from(value: &UserId) -> Self {
+        value.0
+    }
+}
+
+impl AsRef<i64> for UserId {
+    fn as_ref(&self) -> &i64 {
         &self.0
     }
 }
@@ -46,5 +52,11 @@ impl From<String> for UserName {
 impl From<UserName> for String {
     fn from(value: UserName) -> Self {
         value.0
+    }
+}
+
+impl From<&UserName> for String {
+    fn from(value: &UserName) -> Self {
+        value.0.clone()
     }
 }

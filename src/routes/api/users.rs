@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use crate::app_state::AppState;
+use crate::domain::user::{UserId, UserName};
 use crate::error::ApiError;
 use crate::repositories;
 
@@ -25,7 +26,7 @@ pub fn users(state: AppState) -> Router {
 async fn get_users(State(state): State<AppState>) -> Result<Json<Value>, ApiError> {
     #[derive(Serialize)]
     struct UserResponse {
-        id: i32,
+        id: i64,
         name: String,
     }
 
@@ -45,16 +46,20 @@ async fn add_user(
     State(state): State<AppState>,
     Json(body): Json<PostUser>,
 ) -> Result<StatusCode, ApiError> {
-    repositories::users::insert_user(&state.pool, body.name).await?;
+    let name: UserName = UserName::new(body.name);
+
+    repositories::users::insert_user(&state.pool, &name).await?;
 
     Ok(StatusCode::CREATED)
 }
 
 async fn delete_user(
     State(state): State<AppState>,
-    Path(id): Path<i32>,
+    Path(id): Path<i64>,
 ) -> Result<StatusCode, ApiError> {
-    repositories::users::delete_user(&state.pool, id).await?;
+    let id: UserId = UserId::new(id);
+
+    repositories::users::delete_user(&state.pool, &id).await?;
 
     Ok(StatusCode::NO_CONTENT)
 }
