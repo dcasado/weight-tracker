@@ -50,11 +50,6 @@ async fn render_chart(
     };
 
     #[derive(Serialize)]
-    struct UserIdResponse {
-        id: i64,
-    }
-
-    #[derive(Serialize)]
     struct MeasurementResponse {
         id: i64,
         date_time: String,
@@ -77,9 +72,10 @@ async fn render_chart(
         })
         .collect();
 
+    let user_id: i64 = user_id.into();
     let data = json!({
         "title": "Chart",
-        "user_id": UserIdResponse{id: user_id.into()},
+        "user_id": user_id,
         "start_date": start_date,
         "end_date": end_date,
         "measurements": serde_json::to_string(&measurements).map_err(|_| ApiError::Unknown)?
