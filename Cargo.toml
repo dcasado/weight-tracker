@@ -17,5 +17,5 @@ tower-http = { version = "0.6.1", features = ["fs", "trace"] }
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = { version = "1.0.120" }
 chrono = { version = "0.4.38", features = ["serde"]}
-sqlx = { version = "0.8.1", features = ["runtime-tokio", "sqlite", "chrono", "migrate"] }
+sqlx = { version = "0.8.2", features = ["runtime-tokio", "sqlite", "chrono", "migrate"] }
 handlebars = { version = "5.1.2" }
