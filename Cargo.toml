@@ -18,4 +18,4 @@ serde = { version = "1.0.210", features = ["derive"] }
 serde_json = { version = "1.0.128" }
 chrono = { version = "0.4.38", features = ["serde"]}
 sqlx = { version = "0.8.2", features = ["runtime-tokio", "sqlite", "chrono", "migrate"] }
-handlebars = { version = "5.1.2" }
+handlebars = { version = "6.1.0" }
