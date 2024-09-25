@@ -94,7 +94,7 @@
 
         if (startDate === undefined || startDate === '') {
             startDate = new Date();
-            startDate.setDate(startDate.getDate() - 7);
+            startDate.setDate(startDate.getDate() - 30);
             startDateInput.valueAsDate = startDate;
         } else {
             startDate = new Date(startDate + 'T00:00:00.000');
