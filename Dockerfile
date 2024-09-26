@@ -19,6 +19,6 @@ COPY static static
 COPY templates templates
 COPY --from=builder /usr/src/weight-tracker/target/release/weight-tracker /usr/local/bin/weight-tracker
 
-ENV DATABASE_URL=sqlite:///etc/weight-tracker/weight-track.db
+ENV DATABASE_URL=sqlite:///etc/weight-tracker/weight-tracker.db
 ENV LISTEN_ADDRESS=0.0.0.0
 CMD ["weight-tracker"]
