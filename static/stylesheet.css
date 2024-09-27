@@ -40,6 +40,12 @@ body {
     margin-top: 0.5em;
 }
 
+.alert {
+    background-color: red;
+    padding: 0 1em;
+    align-items: center;
+}
+
 body input {
     margin: 1em;
 }

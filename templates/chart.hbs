@@ -17,6 +17,11 @@
         <input type="submit" value="Go to table" />
     </form>
 </div>
+{{#if alert_message}}
+<div class="alert">
+    {{{alert_message}}}
+</div>
+{{/if}}
 <script>
     const userLocale =
         navigator.languages && navigator.languages.length

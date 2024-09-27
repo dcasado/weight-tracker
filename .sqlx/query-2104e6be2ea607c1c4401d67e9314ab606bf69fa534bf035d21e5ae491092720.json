@@ -1,0 +1,26 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT date_time, COUNT(*) as counter FROM measurements WHERE user_id = $1 GROUP BY date(date_time) HAVING COUNT(*) > 1",
+  "describe": {
+    "columns": [
+      {
+        "name": "date_time",
+        "ordinal": 0,
+        "type_info": "Text"
+      },
+      {
+        "name": "counter",
+        "ordinal": 1,
+        "type_info": "Integer"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "2104e6be2ea607c1c4401d67e9314ab606bf69fa534bf035d21e5ae491092720"
+}

@@ -105,6 +105,31 @@ pub async fn find_measurements_between_dates(
         .collect()
 }
 
+pub async fn find_duplicate_measurements(
+    pool: &Pool<Sqlite>,
+    user_id: &UserId,
+) -> Result<Vec<(String, i64)>, ApiError> {
+    struct Row {
+        date_time: String,
+        counter: i64,
+    }
+
+    let user_id: i64 = user_id.into();
+    let result = sqlx::query_as!(
+        Row,
+        r#"SELECT date_time, COUNT(*) as counter FROM measurements WHERE user_id = $1 GROUP BY date(date_time) HAVING COUNT(*) > 1"#,
+        user_id
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(|_| ApiError::Unknown)?;
+
+    result
+        .into_iter()
+        .map(|r| Ok((r.date_time, r.counter)))
+        .collect()
+}
+
 pub async fn delete_measurement(pool: &Pool<Sqlite>, id: &MeasurementId) -> Result<(), ApiError> {
     let id: i64 = id.into();
 

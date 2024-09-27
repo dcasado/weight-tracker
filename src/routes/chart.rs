@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::Write;
 
 use axum::{
     extract::{Path, Query, State},
@@ -72,13 +73,30 @@ async fn render_chart(
         })
         .collect();
 
+    let duplicate_measurements =
+        repositories::measurements::find_duplicate_measurements(&state.pool, &user_id).await?;
+    let mut alert_message = "".to_string();
+    if !duplicate_measurements.is_empty() {
+        alert_message = format!(
+            "<p>There are duplicate measurements on the follwing dates.</p> <ul>{}</ul>",
+            duplicate_measurements
+                .into_iter()
+                .fold(String::new(), |mut output, d| {
+                    let _ = write!(output, "<li>{}</li>", d.0);
+                    output
+                })
+        )
+        .to_string();
+    }
+
     let user_id: i64 = user_id.into();
     let data = json!({
         "title": "Chart",
         "user_id": user_id,
         "start_date": start_date,
         "end_date": end_date,
-        "measurements": serde_json::to_string(&measurements).map_err(|_| ApiError::Unknown)?
+        "measurements": serde_json::to_string(&measurements).map_err(|_| ApiError::Unknown)?,
+        "alert_message": alert_message
     });
 
     let template = state
