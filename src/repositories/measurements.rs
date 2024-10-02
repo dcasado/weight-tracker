@@ -110,14 +110,14 @@ pub async fn find_duplicate_measurements(
     user_id: &UserId,
 ) -> Result<Vec<(String, i64)>, ApiError> {
     struct Row {
-        date_time: String,
+        date: Option<String>,
         counter: i64,
     }
 
     let user_id: i64 = user_id.into();
     let result = sqlx::query_as!(
         Row,
-        r#"SELECT date_time, COUNT(*) as counter FROM measurements WHERE user_id = $1 GROUP BY date(date_time) HAVING COUNT(*) > 1"#,
+        r#"SELECT date(date_time, 'localtime') AS date, COUNT(*) as counter FROM measurements WHERE user_id = $1 GROUP BY date HAVING COUNT(*) > 1"#,
         user_id
     )
     .fetch_all(pool)
@@ -126,7 +126,13 @@ pub async fn find_duplicate_measurements(
 
     result
         .into_iter()
-        .map(|r| Ok((r.date_time, r.counter)))
+        .map(|r| {
+            Ok((
+                r.date
+                    .expect("date returned from the database should not be none"),
+                r.counter,
+            ))
+        })
         .collect()
 }
 
