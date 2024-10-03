@@ -2,20 +2,24 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {{/inline}}
 {{#*inline "content"}}
-<div id="chart-div">
-    <div id="dates-div">
+<nav>
+    <a class="selected">Chart</a>
+    <a href="/table/{{user_id}}">Table</a>
+</nav>
+
+<div id="dates-div">
+    <form id="filter-form" action="/chart/{{user_id}}">
         <label for="start-date">Start date
-            <input type="date" id="start-date" name="start-date" />
+            <input type="date" id="start-date" name="start-date" required/>
         </label>
         <label for="end-date">End date
-            <input type="date" id="end-date" name="end-date" />
+            <input type="date" id="end-date" name="end-date" required/>
         </label>
-        <input id="filter-input" type="button" value="Filter" onclick="filter()" />
-    </div>
-    <canvas id="weight-chart"></canvas>
-    <form action="/table/{{user_id}}">
-        <input type="submit" value="Go to table" />
+        <input id="filter-input" type="submit" value="Filter" />
     </form>
+</div>
+<div id="chart-div">
+    <canvas id="weight-chart"></canvas>
 </div>
 {{#if alert_message}}
 <div class="alert">
@@ -86,42 +90,6 @@
         return result;
     }
 
-    function filter() {
-        const startDate = getStartDateFromInput();
-        const endDate = getEndDateFromInput();
-
-        window.location.href = "/chart/{{user_id}}?start-date=" + startDate.toISOString() + "&end-date=" + endDate.toISOString();
-    }
-
-    function getStartDateFromInput() {
-        const startDateInput = document.getElementById('start-date');
-        let startDate = startDateInput.value;
-
-        if (startDate === undefined || startDate === '') {
-            startDate = new Date();
-            startDate.setDate(startDate.getDate() - 30);
-            startDateInput.valueAsDate = startDate;
-        } else {
-            startDate = new Date(startDate + 'T00:00:00.000');
-        }
-
-        return startDate;
-    }
-
-    function getEndDateFromInput() {
-        const endDateInput = document.getElementById('end-date')
-        let endDate = endDateInput.value;
-
-        if (endDate === undefined || endDate === '') {
-            endDate = new Date();
-            endDate.setHours(23, 59, 59, 999);
-            endDateInput.valueAsDate = endDate;
-        } else {
-            endDate = new Date(endDate + 'T23:59:59.999')
-        }
-
-        return endDate;
-    }
 </script>
 {{/inline}}
 {{> base}}

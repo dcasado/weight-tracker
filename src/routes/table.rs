@@ -52,9 +52,11 @@ async fn render_table(
             })
             .collect();
 
+    let user_id: i64 = user_id.into();
     let data = json!({
         "title": "Table",
-        "measurements": measurements
+        "measurements": measurements,
+        "user_id": user_id
     });
 
     let template = state

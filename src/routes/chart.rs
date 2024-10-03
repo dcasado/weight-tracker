@@ -7,7 +7,7 @@ use axum::{
     routing::get,
     Router,
 };
-use chrono::{DateTime, FixedOffset};
+use chrono::{DateTime, Duration, FixedOffset, Local, NaiveDate, NaiveTime, TimeZone};
 use serde::Serialize;
 use serde_json::json;
 
@@ -37,17 +37,40 @@ async fn render_chart(
         .id;
 
     let start_date: DateTime<FixedOffset> = match params.get("start-date") {
-        Some(d) => {
-            DateTime::<FixedOffset>::parse_from_rfc3339(d).map_err(|_| ApiError::InvalidDateTime)?
-        }
-        None => return Err(ApiError::MandatoryStartDate),
+        Some(d) => Local::now()
+            .timezone()
+            .from_local_datetime(
+                &NaiveDate::parse_from_str(d, "%Y-%m-%d")
+                    .map_err(|_| ApiError::InvalidDateTime)?
+                    .and_hms_opt(0, 0, 0)
+                    .expect("manually set time should be valid"),
+            )
+            .unwrap()
+            .into(),
+        None => (Local::now()
+            .with_time(NaiveTime::from_hms_opt(0, 0, 0).expect("manually set time should be valid"))
+            .unwrap()
+            - Duration::days(30))
+        .into(),
     };
 
     let end_date: DateTime<FixedOffset> = match params.get("end-date") {
-        Some(d) => {
-            DateTime::<FixedOffset>::parse_from_rfc3339(d).map_err(|_| ApiError::InvalidDateTime)?
-        }
-        None => return Err(ApiError::MandatoryEndDate),
+        Some(d) => Local::now()
+            .timezone()
+            .from_local_datetime(
+                &NaiveDate::parse_from_str(d, "%Y-%m-%d")
+                    .map_err(|_| ApiError::InvalidDateTime)?
+                    .and_hms_milli_opt(23, 59, 59, 999)
+                    .expect("manually set time should be valid"),
+            )
+            .unwrap()
+            .into(),
+        None => Local::now()
+            .with_time(
+                NaiveTime::from_hms_milli_opt(23, 59, 59, 999).expect("time should be valid"),
+            )
+            .unwrap()
+            .into(),
     };
 
     #[derive(Serialize)]
@@ -68,7 +91,7 @@ async fn render_chart(
         .into_iter()
         .map(|m: Measurement| MeasurementResponse {
             id: m.id.into(),
-            date_time: m.date_time.to_rfc3339(),
+            date_time: m.date_time.date_naive().to_string(),
             weight: m.weight.into(),
         })
         .collect();
@@ -93,8 +116,8 @@ async fn render_chart(
     let data = json!({
         "title": "Chart",
         "user_id": user_id,
-        "start_date": start_date,
-        "end_date": end_date,
+        "start_date": start_date.date_naive(),
+        "end_date": end_date.date_naive(),
         "measurements": serde_json::to_string(&measurements).map_err(|_| ApiError::Unknown)?,
         "alert_message": alert_message
     });

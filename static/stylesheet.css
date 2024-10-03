@@ -26,13 +26,33 @@ body {
     justify-content: space-around;
 }
 
-#dates-div {
+nav {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    background-color: lightgray;
+
+    a {
+        flex-grow: 1;
+        text-align: center;
+        text-decoration: none;
+        padding: 2em;
+        color: black;
+
+        &.selected {
+            background-color: white;
+            font-weight: bold;
+        }
+    }
+}
+
+#filter-form {
     display: flex;
     flex-direction: column;
     align-items: center;
 }
 
-#dates-div input {
+#filter-form input {
     margin: 0.5em;
 }
 
