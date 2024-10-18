@@ -46,7 +46,7 @@ pub async fn find_measurements(
 
     let rows = sqlx::query_as!(
         Row,
-        r#"SELECT id, user_id, date_time, weight FROM measurements WHERE user_id = $1 ORDER BY date_time ASC"#,
+        r#"SELECT id, user_id, date_time, weight FROM measurements WHERE user_id = $1 ORDER BY date_time DESC"#,
         user_id,
     )
     .fetch_all(pool)
