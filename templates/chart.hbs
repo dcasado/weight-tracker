@@ -2,11 +2,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {{/inline}}
 {{#*inline "content"}}
-<nav>
-    <a class="selected">Chart</a>
-    <a href="/table/{{user_id}}">Table</a>
-</nav>
-
+{{> navigation}}
 <div id="dates-div">
     <form id="filter-form" action="/chart/{{user_id}}">
         <label for="start-date">Start date
@@ -72,6 +68,9 @@
     const weightChart = document.getElementById('weight-chart');
     chart = new Chart(weightChart, {
         type: 'line',
+        options: {
+            aspectRatio: 1.25
+        },
         data: {
             labels: dateTimes,
             datasets: [{

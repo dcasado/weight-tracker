@@ -4,7 +4,7 @@ body {
     justify-content: center;
     max-width: 800px;
     margin: auto;
-    padding: 0 1em;
+    padding: 0 2px;
     font-family: Verdana, sans-serif;
 }
 
@@ -30,20 +30,18 @@ nav {
     display: flex;
     flex-direction: row;
     justify-content: space-around;
-    background-color: lightgray;
+    margin-top: 0.25em;
+    margin-bottom: 0.5em;
 
     a {
         flex-grow: 1;
         text-align: center;
-        text-decoration: none;
-        padding: 2em;
         color: black;
-
-        &.selected {
-            background-color: white;
-            font-weight: bold;
-        }
     }
+}
+
+hr {
+    width: 75%;
 }
 
 #filter-form {
