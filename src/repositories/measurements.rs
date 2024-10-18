@@ -26,7 +26,7 @@ pub async fn insert_measurement(
     )
     .execute(pool)
     .await
-    .map_err(|_| ApiError::Unknown)?;
+    .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     Ok(())
 }
@@ -51,7 +51,7 @@ pub async fn find_measurements(
     )
     .fetch_all(pool)
     .await
-    .map_err(|_| ApiError::Unknown)?;
+    .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     rows.into_iter()
         .map(|r| {
@@ -59,8 +59,8 @@ pub async fn find_measurements(
                 id: MeasurementId::new(r.id),
                 user_id: UserId::new(r.user_id),
                 date_time: DateTime::parse_from_rfc3339(r.date_time.as_str())
-                    .map_err(|_| ApiError::Unknown)?,
-                weight: Weight::new(r.weight).map_err(|_| ApiError::Unknown)?,
+                    .map_err(|e| ApiError::Unexpected(Box::new(e)))?,
+                weight: Weight::new(r.weight)?,
             })
         })
         .collect()
@@ -90,7 +90,7 @@ pub async fn find_measurements_between_dates(
     )
     .fetch_all(pool)
     .await
-    .map_err(|_| ApiError::Unknown)?;
+    .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     rows.into_iter()
         .map(|r| {
@@ -98,8 +98,8 @@ pub async fn find_measurements_between_dates(
                 id: MeasurementId::new(r.id),
                 user_id: UserId::new(r.user_id),
                 date_time: DateTime::parse_from_rfc3339(r.date_time.as_str())
-                    .map_err(|_| ApiError::Unknown)?,
-                weight: Weight::new(r.weight).map_err(|_| ApiError::Unknown)?,
+                    .map_err(|e| ApiError::Unexpected(Box::new(e)))?,
+                weight: Weight::new(r.weight)?,
             })
         })
         .collect()
@@ -122,7 +122,7 @@ pub async fn find_duplicate_measurements(
     )
     .fetch_all(pool)
     .await
-    .map_err(|_| ApiError::Unknown)?;
+    .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     result
         .into_iter()
@@ -142,7 +142,7 @@ pub async fn delete_measurement(pool: &Pool<Sqlite>, id: &MeasurementId) -> Resu
     let result = sqlx::query!(r#"DELETE FROM measurements WHERE id = $1"#, id)
         .execute(pool)
         .await
-        .map_err(|_| ApiError::Unknown)?;
+        .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     if result.rows_affected() == 0 {
         return Err(ApiError::MeasurementNotFound);

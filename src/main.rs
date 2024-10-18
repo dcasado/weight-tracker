@@ -39,7 +39,7 @@ async fn main() -> Result<(), ApiError> {
 
     let mut handlebars = handlebars::Handlebars::new();
 
-    templates::register(&mut handlebars).map_err(|_| ApiError::Unknown)?;
+    templates::register(&mut handlebars).map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     let app_state = AppState { pool, handlebars };
 

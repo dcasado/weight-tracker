@@ -11,7 +11,7 @@ pub async fn insert_user(pool: &Pool<Sqlite>, name: &UserName) -> Result<(), Api
     let _ = sqlx::query!(r#"INSERT INTO users (name) VALUES ($1)"#, name)
         .execute(pool)
         .await
-        .map_err(|_| ApiError::Unknown)?;
+        .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     Ok(())
 }
@@ -25,7 +25,7 @@ pub async fn find_users(pool: &Pool<Sqlite>) -> Result<Vec<User>, ApiError> {
     let rows = sqlx::query_as!(Row, r#"SELECT * FROM users"#)
         .fetch_all(pool)
         .await
-        .map_err(|_| ApiError::Unknown)?;
+        .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     rows.into_iter()
         .map(|r| {
@@ -48,7 +48,7 @@ pub async fn find_user(pool: &Pool<Sqlite>, user_id: &UserId) -> Result<Option<U
     let row = sqlx::query_as!(Row, r#"SELECT id, name FROM users where id = $1"#, user_id)
         .fetch_optional(pool)
         .await
-        .map_err(|_| ApiError::Unknown)?;
+        .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     Ok(row.map(|r| User {
         id: UserId::new(r.id),
@@ -62,7 +62,7 @@ pub async fn delete_user(pool: &Pool<Sqlite>, id: &UserId) -> Result<(), ApiErro
     let result = sqlx::query!(r#"DELETE FROM users WHERE id = $1"#, id)
         .execute(pool)
         .await
-        .map_err(|_| ApiError::Unknown)?;
+        .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     if result.rows_affected() == 0 {
         return Err(ApiError::UserNotFound);

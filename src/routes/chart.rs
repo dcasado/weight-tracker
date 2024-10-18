@@ -118,14 +118,14 @@ async fn render_chart(
         "user_id": user_id,
         "start_date": start_date.date_naive(),
         "end_date": end_date.date_naive(),
-        "measurements": serde_json::to_string(&measurements).map_err(|_| ApiError::Unknown)?,
+        "measurements": serde_json::to_string(&measurements).map_err(|e| ApiError::Unexpected(Box::new(e)))?,
         "alert_message": alert_message
     });
 
     let template = state
         .handlebars
         .render("chart", &data)
-        .map_err(|_| ApiError::Unknown)?;
+        .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     Ok(Html(template))
 }

@@ -34,7 +34,7 @@ async fn render_index(State(state): State<AppState>) -> Result<Html<String>, Api
     let template = state
         .handlebars
         .render("index", &data)
-        .map_err(|_| ApiError::Unknown)?;
+        .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     Ok(Html(template))
 }

@@ -16,7 +16,7 @@ pub enum ApiError {
     NegativeWeight,
     MeasurementNotFound,
 
-    Unknown,
+    Unexpected(Box<dyn std::error::Error>),
 }
 
 impl IntoResponse for ApiError {
@@ -47,10 +47,13 @@ impl IntoResponse for ApiError {
             Self::MeasurementNotFound => {
                 (StatusCode::NOT_FOUND, "Measurement not found".to_string())
             }
-            Self::Unknown => (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                "Internal server error".to_string(),
-            ),
+            Self::Unexpected(error) => {
+                println!("Unexpected error ocurred. {}", error);
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Internal server error".to_string(),
+                )
+            }
         };
         (status, Json(json!({"message": err_msg }))).into_response()
     }

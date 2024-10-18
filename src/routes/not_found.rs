@@ -17,7 +17,7 @@ async fn render_not_found(State(state): State<AppState>) -> Result<Html<String>,
     let template = state
         .handlebars
         .render("not_found", &data)
-        .map_err(|_| ApiError::Unknown)?;
+        .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     Ok(Html(template))
 }

@@ -62,7 +62,7 @@ async fn render_table(
     let template = state
         .handlebars
         .render("table", &data)
-        .map_err(|_| ApiError::Unknown)?;
+        .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     Ok(Html(template))
 }
