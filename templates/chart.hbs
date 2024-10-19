@@ -23,13 +23,6 @@
 </div>
 {{/if}}
 <script>
-    const userLocale =
-        navigator.languages && navigator.languages.length
-            ? navigator.languages[0]
-            : navigator.language;
-
-    const measurements = {{{ measurements }}};
-
     const startDate = new Date("{{ start_date }}");
     const startDateInput = document.getElementById('start-date');
     startDateInput.valueAsDate = new Date(Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()));
@@ -38,33 +31,6 @@
     const endDateInput = document.getElementById('end-date');
     endDateInput.valueAsDate = new Date(Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()));
 
-    let dateTimes = [];
-    let weights = [];
-
-    let currentDate = startDate;
-    const dateOptions = { year: 'numeric', month: 'numeric', day: 'numeric' };
-    let i = 0;
-    while (currentDate <= endDate) {
-        currentDateString = currentDate.toLocaleDateString(userLocale, dateOptions)
-        dateTimes.push(currentDateString);
-
-        if (i < measurements.length) {
-            const dateString = new Date(measurements[i].date_time).toLocaleDateString(userLocale, dateOptions);
-
-            if (currentDateString === dateString) {
-                const weight = measurements[i].weight;
-                weights.push(weight);
-                i += 1;
-            } else {
-                weights.push(null);
-            }
-        } else {
-            weights.push(null);
-        }
-
-        currentDate = addDay(currentDate);
-    }
-
     const weightChart = document.getElementById('weight-chart');
     chart = new Chart(weightChart, {
         type: 'line',
@@ -72,23 +38,16 @@
             aspectRatio: 1.25
         },
         data: {
-            labels: dateTimes,
+            labels: {{{dates}}},
             datasets: [{
                 label: 'Weight',
-                data: weights,
+                data: {{{weights}}},
                 borderWidth: 1,
                 tension: 0.25,
                 spanGaps: true
             }]
         }
     });
-
-    function addDay(date) {
-        var result = new Date(date);
-        result.setDate(result.getDate() + 1);
-        return result;
-    }
-
 </script>
 {{/inline}}
 {{> base}}

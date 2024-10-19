@@ -8,7 +8,6 @@ use axum::{
     Router,
 };
 use chrono::{DateTime, Duration, FixedOffset, Local, NaiveDate, NaiveTime, TimeZone};
-use serde::Serialize;
 use serde_json::json;
 
 use crate::{
@@ -73,14 +72,7 @@ async fn render_chart(
             .into(),
     };
 
-    #[derive(Serialize)]
-    struct MeasurementResponse {
-        id: i64,
-        date_time: String,
-        weight: f64,
-    }
-
-    let measurements: Vec<MeasurementResponse> =
+    let measurements: Vec<Measurement> =
         repositories::measurements::find_measurements_between_dates(
             &state.pool,
             &user_id,
@@ -89,12 +81,29 @@ async fn render_chart(
         )
         .await?
         .into_iter()
-        .map(|m: Measurement| MeasurementResponse {
-            id: m.id.into(),
-            date_time: m.date_time.date_naive().to_string(),
-            weight: m.weight.into(),
-        })
         .collect();
+
+    let mut dates: Vec<NaiveDate> = vec![];
+    let mut weights: Vec<Option<f64>> = vec![];
+
+    let mut current_date = start_date;
+    let mut i = 0;
+    while current_date < end_date {
+        dates.push(current_date.date_naive());
+        if i < measurements.len() {
+            let measurement = measurements.get(i).unwrap();
+            if current_date.date_naive() == measurement.date_time.date_naive() {
+                let weight = &measurement.weight;
+                weights.push(Some(weight.into()));
+                i += 1;
+            } else {
+                weights.push(None);
+            }
+        } else {
+            weights.push(None);
+        }
+        current_date += Duration::days(1);
+    }
 
     let duplicate_measurements =
         repositories::measurements::find_duplicate_measurements(&state.pool, &user_id).await?;
@@ -118,7 +127,8 @@ async fn render_chart(
         "user_id": user_id,
         "start_date": start_date.date_naive(),
         "end_date": end_date.date_naive(),
-        "measurements": serde_json::to_string(&measurements).map_err(|e| ApiError::Unexpected(Box::new(e)))?,
+        "dates": serde_json::to_string(&dates).map_err(|e| ApiError::Unexpected(Box::new(e)))?,
+        "weights": serde_json::to_string(&weights).map_err(|e| ApiError::Unexpected(Box::new(e)))?,
         "alert_message": alert_message
     });
 
