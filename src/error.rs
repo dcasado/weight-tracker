@@ -15,6 +15,7 @@ pub enum ApiError {
     InvalidDateTime,
     NegativeWeight,
     MeasurementNotFound,
+    UnsupportedMediaType,
 
     Unexpected(Box<dyn std::error::Error>),
 }
@@ -47,6 +48,10 @@ impl IntoResponse for ApiError {
             Self::MeasurementNotFound => {
                 (StatusCode::NOT_FOUND, "Measurement not found".to_string())
             }
+            Self::UnsupportedMediaType => (
+                StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                "media type not supported".to_string(),
+            ),
             Self::Unexpected(error) => {
                 println!("Unexpected error ocurred. {}", error);
                 (
