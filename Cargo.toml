@@ -14,7 +14,7 @@ name = "weight-tracker"
 axum = { version = "0.7.7" }
 tokio = { version = "1.41.1", features = ["full"] }
 tower-http = { version = "0.6.1", features = ["fs", "trace"] }
-serde = { version = "1.0.214", features = ["derive"] }
+serde = { version = "1.0.215", features = ["derive"] }
 serde_json = { version = "1.0.132" }
 chrono = { version = "0.4.38", features = ["serde"] }
 sqlx = { version = "0.8.2", features = [
