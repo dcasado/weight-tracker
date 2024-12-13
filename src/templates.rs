@@ -11,6 +11,8 @@ pub fn register(handlebars: &mut handlebars::Handlebars) -> Result<(), TemplateE
 
     handlebars.register_template_file("table", "./templates/table.hbs")?;
 
+    handlebars.register_template_file("footer", "./templates/footer.hbs")?;
+
     handlebars.register_template_file("not_found", "./templates/404.hbs")?;
 
     Ok(())

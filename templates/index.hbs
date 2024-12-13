@@ -1,4 +1,10 @@
 {{#*inline "content"}}
+<script>
+    let userId = localStorage.getItem("userId");
+    if (userId !== null) {
+        window.location.replace("/chart/" + userId)
+    }
+</script>
 <div id="users-div">
     <h1>Who are you?</h1>
     <div id="user-inputs">
@@ -9,6 +15,7 @@
 </div>
 <script>
     function goToChart(id) {
+        localStorage.setItem("userId", id);
         window.location.href = "/chart/" + id;
     }
 </script>
