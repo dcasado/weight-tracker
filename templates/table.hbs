@@ -2,20 +2,24 @@
 {{> navigation}}
 <div id="table-div">
     <table>
-        <tr>
-            <th>Date</th>
-            <th>Weight</th>
-            <th>Action</th>
-        </tr>
-        {{#each measurements}}
-        <tr>
-            <td>{{date_time}}</td>
-            <td>{{weight}}</td>
-            <td>
-                <input type="button" value="Delete" onclick="deleteMeasurement({{id}})" />
-            </td>
-        </tr>
-        {{/each}}
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Weight</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each measurements}}
+            <tr>
+                <td>{{date_time}}</td>
+                <td>{{weight}}</td>
+                <td>
+                    <input type="button" value="Delete" onclick="deleteMeasurement({{id}})" />
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
     </table>
 </div>
 <script>
