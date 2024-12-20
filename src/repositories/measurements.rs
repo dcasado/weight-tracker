@@ -149,7 +149,7 @@ pub async fn find_years(pool: &Pool<Sqlite>, user_id: &UserId) -> Result<Vec<Str
 
     let year_result = sqlx::query_as!(
         Row,
-        r#"SELECT DISTINCT strftime('%Y', date_time) AS year FROM measurements WHERE user_id = $1"#,
+        r#"SELECT DISTINCT strftime('%Y', date_time) AS year FROM measurements WHERE user_id = $1 ORDER BY year DESC"#,
         user_id
     )
     .fetch_all(pool)
@@ -178,7 +178,7 @@ pub async fn find_months_by_year(
 
     let month_result = sqlx::query_as!(
         Row,
-        r#"SELECT DISTINCT strftime('%m', date_time) AS month FROM measurements WHERE user_id = $1 AND strftime('%Y', date_time) = $2"#,
+        r#"SELECT DISTINCT strftime('%m', date_time) AS month FROM measurements WHERE user_id = $1 AND strftime('%Y', date_time) = $2 ORDER BY month DESC"#,
         user_id,
         year
     )
