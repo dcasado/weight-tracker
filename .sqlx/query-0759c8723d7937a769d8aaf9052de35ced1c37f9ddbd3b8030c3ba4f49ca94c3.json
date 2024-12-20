@@ -1,0 +1,20 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT DISTINCT strftime('%Y', date_time) AS year FROM measurements WHERE user_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "name": "year",
+        "ordinal": 0,
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": [
+      true
+    ]
+  },
+  "hash": "0759c8723d7937a769d8aaf9052de35ced1c37f9ddbd3b8030c3ba4f49ca94c3"
+}

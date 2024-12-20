@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT id, user_id, date_time, weight FROM measurements WHERE user_id = $1 ORDER BY date_time DESC",
+  "query": "SELECT id, user_id, date_time, weight FROM measurements WHERE user_id = $1 AND strftime('%Y', date_time) = $2 AND strftime('%m', date_time) = $3 ORDER BY date_time DESC",
   "describe": {
     "columns": [
       {
@@ -25,7 +25,7 @@
       }
     ],
     "parameters": {
-      "Right": 1
+      "Right": 3
     },
     "nullable": [
       false,
@@ -34,5 +34,5 @@
       false
     ]
   },
-  "hash": "4a79023570a237e48fec8c95bc3d8a4ac4f35ad89c2fd96d724f1c8caa2f9c1b"
+  "hash": "80702e197a817409c4e14c149d4b333d3200f89b6d1723333fc54e1ed809dbbd"
 }

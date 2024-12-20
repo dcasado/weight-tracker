@@ -31,9 +31,11 @@ pub async fn insert_measurement(
     Ok(())
 }
 
-pub async fn find_measurements(
+pub async fn find_measurements_by_year_month(
     pool: &Pool<Sqlite>,
     user_id: &UserId,
+    year: &str,
+    month: &str,
 ) -> Result<Vec<Measurement>, ApiError> {
     struct Row {
         id: i64,
@@ -46,8 +48,10 @@ pub async fn find_measurements(
 
     let rows = sqlx::query_as!(
         Row,
-        r#"SELECT id, user_id, date_time, weight FROM measurements WHERE user_id = $1 ORDER BY date_time DESC"#,
+        r#"SELECT id, user_id, date_time, weight FROM measurements WHERE user_id = $1 AND strftime('%Y', date_time) = $2 AND strftime('%m', date_time) = $3 ORDER BY date_time DESC"#,
         user_id,
+        year,
+        month
     )
     .fetch_all(pool)
     .await
@@ -134,6 +138,61 @@ pub async fn find_duplicate_measurements(
             ))
         })
         .collect()
+}
+
+pub async fn find_years(pool: &Pool<Sqlite>, user_id: &UserId) -> Result<Vec<String>, ApiError> {
+    struct Row {
+        year: Option<String>,
+    }
+
+    let user_id: i64 = user_id.into();
+
+    let year_result = sqlx::query_as!(
+        Row,
+        r#"SELECT DISTINCT strftime('%Y', date_time) AS year FROM measurements WHERE user_id = $1"#,
+        user_id
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
+
+    Ok(year_result
+        .into_iter()
+        .map(|r| {
+            r.year
+                .expect("year returned from date on the database should not be none")
+        })
+        .collect())
+}
+
+pub async fn find_months_by_year(
+    pool: &Pool<Sqlite>,
+    user_id: &UserId,
+    year: &str,
+) -> Result<Vec<String>, ApiError> {
+    struct Row {
+        month: Option<String>,
+    }
+
+    let user_id: i64 = user_id.into();
+
+    let month_result = sqlx::query_as!(
+        Row,
+        r#"SELECT DISTINCT strftime('%m', date_time) AS month FROM measurements WHERE user_id = $1 AND strftime('%Y', date_time) = $2"#,
+        user_id,
+        year
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
+
+    Ok(month_result
+        .into_iter()
+        .map(|r| {
+            r.month
+                .expect("month returned from date on the database should not be none")
+        })
+        .collect())
 }
 
 pub async fn delete_measurement(pool: &Pool<Sqlite>, id: &MeasurementId) -> Result<(), ApiError> {
