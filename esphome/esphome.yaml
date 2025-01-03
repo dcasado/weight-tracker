@@ -24,12 +24,16 @@ sensor:
       id: weight_miscale
       filters:
         - throttle: 30s
+      qos: 2
+      retain: false
 
     impedance:
       name: "Xiaomi Mi Scale Impedance"
       id: impedance_miscale
       filters:
         - throttle: 30s
+      qos: 2
+      retain: false
 
 mqtt:
   broker: !secret mqtt_broker
