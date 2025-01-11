@@ -19,7 +19,7 @@ use crate::{
 
 pub fn table(state: AppState) -> Router {
     Router::new()
-        .route("/table/:user_id", get(render_table))
+        .route("/table/{user_id}", get(render_table))
         .with_state(state)
 }
 

@@ -19,7 +19,7 @@ struct PostUser {
 pub fn users(state: AppState) -> Router {
     Router::new()
         .route("/users", get(get_users).post(add_user))
-        .route("/users/:id", delete(delete_user))
+        .route("/users/{id}", delete(delete_user))
         .with_state(state)
 }
 

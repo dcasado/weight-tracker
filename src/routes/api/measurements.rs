@@ -33,7 +33,7 @@ struct MeasurementResponse {
 pub fn measurements(state: AppState) -> Router {
     Router::new()
         .route("/measurements", get(get_measurements).post(add_measurement))
-        .route("/measurements/:id", delete(delete_measurement))
+        .route("/measurements/{id}", delete(delete_measurement))
         .with_state(state)
 }
 

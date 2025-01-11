@@ -19,7 +19,7 @@ use crate::{
 
 pub fn chart(state: AppState) -> Router {
     Router::new()
-        .route("/chart/:user_id", get(render_chart))
+        .route("/chart/{user_id}", get(render_chart))
         .with_state(state)
 }
 
