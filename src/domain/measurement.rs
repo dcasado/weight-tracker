@@ -31,6 +31,7 @@ impl From<&MeasurementId> for i64 {
     }
 }
 
+#[derive(Clone)]
 pub struct Weight(f64);
 
 impl Weight {

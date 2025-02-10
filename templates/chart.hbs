@@ -22,6 +22,11 @@
     {{{alert_message}}}
 </div>
 {{/if}}
+<div class="centered-div">
+  <p>Min weight: {{min_weight}}</p>
+  <p>Max weight: {{max_weight}}</p>
+  <p>Trend: {{trend}}</p>
+</div>
 <script>
     const startDate = new Date("{{ start_date }}");
     const startDateInput = document.getElementById('start-date');

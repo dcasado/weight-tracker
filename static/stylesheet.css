@@ -72,6 +72,19 @@ nav {
   padding: 1em 0;
 }
 
+.centered-div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+
+  p {
+    flex: 1 0 50%;
+    text-align: center;
+  }
+}
+
 table,
 th,
 td {

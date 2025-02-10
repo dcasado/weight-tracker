@@ -7,7 +7,7 @@ use axum::{
     routing::get,
     Router,
 };
-use chrono::{DateTime, Duration, FixedOffset, Local, NaiveDate, NaiveTime, TimeZone};
+use chrono::{DateTime, Datelike, Duration, FixedOffset, Local, NaiveDate, NaiveTime, TimeZone};
 use serde_json::json;
 
 use crate::{
@@ -121,6 +121,19 @@ async fn render_chart(
         .to_string();
     }
 
+    let min_weight: f64 = measurements
+        .iter()
+        .map(|m| Into::<f64>::into(m.weight.clone()))
+        .fold(f64::MAX, f64::min);
+
+    let max_weight: f64 = measurements
+        .iter()
+        .map(|m| Into::<f64>::into(m.weight.clone()))
+        .fold(f64::MIN, f64::max);
+
+    let slope: f64 = calculate_slope(measurements);
+    let trend_emoji: &str = if slope > 0.0 { "↗️" } else { "↘️" };
+
     let user_id: i64 = user_id.into();
     let data = json!({
         "title": "Chart",
@@ -129,7 +142,10 @@ async fn render_chart(
         "end_date": end_date.date_naive(),
         "dates": serde_json::to_string(&dates).map_err(|e| ApiError::Unexpected(Box::new(e)))?,
         "weights": serde_json::to_string(&weights).map_err(|e| ApiError::Unexpected(Box::new(e)))?,
-        "alert_message": alert_message
+        "alert_message": alert_message,
+        "min_weight": min_weight,
+        "max_weight": max_weight,
+        "trend": trend_emoji
     });
 
     let template = state
@@ -138,4 +154,29 @@ async fn render_chart(
         .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     Ok(Html(template))
+}
+
+fn calculate_slope(measurements: Vec<Measurement>) -> f64 {
+    let n = measurements.len() as f64;
+
+    let weights: Vec<f64> = measurements
+        .iter()
+        .map(|m| m.weight.clone().into())
+        .collect();
+
+    let timestamps: Vec<f64> = measurements
+        .iter()
+        .map(|m| m.date_time.num_days_from_ce() as f64)
+        .collect();
+
+    let sum_x: f64 = timestamps.iter().sum();
+    let sum_x_square: f64 = timestamps.iter().map(|v| v * v).sum();
+    let sum_y: f64 = weights.iter().sum();
+    let mut sum_xy: f64 = 0.0;
+
+    for i in 0..measurements.len() {
+        sum_xy += weights[i] * timestamps[i];
+    }
+
+    (n * sum_xy - sum_x * sum_y) / (n * sum_x_square - (sum_x * sum_x))
 }
