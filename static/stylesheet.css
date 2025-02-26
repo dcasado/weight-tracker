@@ -44,16 +44,6 @@ nav {
     }
 }
 
-#filter-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#filter-form input {
-    margin: 0.5em;
-}
-
 #chart-div {
     margin-top: 0.5em;
 }
@@ -64,7 +54,7 @@ nav {
     align-items: center;
 }
 
-#form-box {
+.form {
   display: flex;
   flex-direction: row;
   align-items: center;

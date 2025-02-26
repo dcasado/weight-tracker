@@ -3,15 +3,13 @@
 {{/inline}}
 {{#*inline "content"}}
 {{> navigation}}
-<div id="dates-div">
-    <form id="filter-form" action="/chart/{{user_id}}">
-        <label for="start-date">Start date
-            <input type="date" id="start-date" name="start-date" required/>
-        </label>
-        <label for="end-date">End date
-            <input type="date" id="end-date" name="end-date" required/>
-        </label>
-    </form>
+<div id="dates-div" class="form">
+    <label for="start-date">From
+        <input type="date" id="start-date" name="start-date" required/>
+    </label>
+    <label for="end-date">To
+        <input type="date" id="end-date" name="end-date" required/>
+    </label>
 </div>
 <div id="chart-div">
     <canvas id="weight-chart"></canvas>
