@@ -11,7 +11,6 @@
         <label for="end-date">End date
             <input type="date" id="end-date" name="end-date" required/>
         </label>
-        <input id="filter-input" type="submit" value="Filter" />
     </form>
 </div>
 <div id="chart-div">
@@ -34,11 +33,17 @@
     const startDateInput = document.getElementById('start-date');
     startDateInput.valueAsDate = new Date(Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()));
     startDateInput.max = endDate.toISOString().split("T")[0];
+    startDateInput.addEventListener("change", function() {
+        window.location.href = window.location.pathname + "?start-date=" + this.value + "&end-date=" + document.getElementById('end-date').value;
+    });
 
     const endDateInput = document.getElementById('end-date');
     endDateInput.valueAsDate = new Date(Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()));
     endDateInput.min = startDate.toISOString().split("T")[0];
     endDateInput.max = new Date().toISOString().split("T")[0];
+    endDateInput.addEventListener("change", function() {
+        window.location.href = window.location.pathname + "?start-date=" + document.getElementById('start-date').value + "&end-date=" + this.value;
+    });
 
     const weightChart = document.getElementById('weight-chart');
     chart = new Chart(weightChart, {
