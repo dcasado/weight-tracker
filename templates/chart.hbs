@@ -29,12 +29,16 @@
 </div>
 <script>
     const startDate = new Date("{{ start_date }}");
+    const endDate = new Date("{{ end_date }}");
+
     const startDateInput = document.getElementById('start-date');
     startDateInput.valueAsDate = new Date(Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()));
+    startDateInput.max = endDate.toISOString().split("T")[0];
 
-    const endDate = new Date("{{ end_date }}");
     const endDateInput = document.getElementById('end-date');
     endDateInput.valueAsDate = new Date(Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()));
+    endDateInput.min = startDate.toISOString().split("T")[0];
+    endDateInput.max = new Date().toISOString().split("T")[0];
 
     const weightChart = document.getElementById('weight-chart');
     chart = new Chart(weightChart, {
