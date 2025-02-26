@@ -49,11 +49,11 @@
     monthSelect.value = "{{month}}";
 
     document.getElementById('year-select').addEventListener("change", function() {
-        window.location.href = "/table/{{user_id}}?year=" + this.value;
+        window.location.href = window.location.pathname + "?year=" + this.value;
     });
 
     document.getElementById('month-select').addEventListener("change", function() {
-        window.location.href = "/table/{{user_id}}?year={{year}}" + "&month=" + this.value;
+        window.location.href = window.location.pathname + "?year={{year}}" + "&month=" + this.value;
     });
 
     function deleteMeasurement(id) {
