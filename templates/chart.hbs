@@ -3,15 +3,16 @@
 {{/inline}}
 {{#*inline "content"}}
 {{> navigation}}
+<script src="/static/chart.js"></script>
 <div id="dates-div" class="form">
     <label for="start-date">From
-        <input type="date" id="start-date" name="start-date" required/>
+        <input type="date" id="start-date" name="start-date" required value="{{start_date}}" max="{{end_date}}"/>
     </label>
     <label for="end-date">To
-        <input type="date" id="end-date" name="end-date" required/>
+        <input type="date" id="end-date" name="end-date" required value="{{end_date}}" min="{{start_date}}"/>
     </label>
 </div>
-<div id="chart-div">
+<div id="chart-div" data-js-dates={{dates}} data-js-weights={{weights}}>
     <canvas id="weight-chart"></canvas>
 </div>
 {{#if alert_message}}
@@ -24,44 +25,6 @@
   <p>Max weight: {{max_weight}}</p>
   <p>Trend: {{trend}}</p>
 </div>
-<script>
-    const startDate = new Date("{{ start_date }}");
-    const endDate = new Date("{{ end_date }}");
-
-    const startDateInput = document.getElementById('start-date');
-    startDateInput.valueAsDate = new Date(Date.UTC(startDate.getFullYear(), startDate.getMonth(), startDate.getDate()));
-    startDateInput.max = endDate.toISOString().split("T")[0];
-    startDateInput.addEventListener("change", function() {
-        window.location.href = window.location.pathname + "?start-date=" + this.value + "&end-date=" + document.getElementById('end-date').value;
-    });
-
-    const endDateInput = document.getElementById('end-date');
-    endDateInput.valueAsDate = new Date(Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate()));
-    endDateInput.min = startDate.toISOString().split("T")[0];
-    endDateInput.max = new Date().toISOString().split("T")[0];
-    endDateInput.addEventListener("change", function() {
-        window.location.href = window.location.pathname + "?start-date=" + document.getElementById('start-date').value + "&end-date=" + this.value;
-    });
-
-    const weightChart = document.getElementById('weight-chart');
-    chart = new Chart(weightChart, {
-        type: 'line',
-        options: {
-            aspectRatio: 1.25,
-            animation: false
-        },
-        data: {
-            labels: {{{dates}}},
-            datasets: [{
-                label: 'Weight',
-                data: {{{weights}}},
-                borderWidth: 1,
-                tension: 0.25,
-                spanGaps: true
-            }]
-        }
-    });
-</script>
 {{> footer}}
 {{/inline}}
 {{> base}}

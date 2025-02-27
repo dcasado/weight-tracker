@@ -1,14 +1,4 @@
+<script src="/static/footer.js"></script>
 <footer>
     <button id="user-changer">Change user</button>
 </footer>
-<script>
-    const userChangerButton = document.getElementById('user-changer');
-    userChangerButton.addEventListener('click', (event) => {
-        changeUser();
-    });
-
-    function changeUser() {
-        localStorage.removeItem("userId");
-        window.location.href = "/";
-    }
-</script>

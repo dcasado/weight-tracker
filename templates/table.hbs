@@ -1,10 +1,11 @@
 {{#*inline "content"}}
 {{> navigation}}
 {{#if years}}
+<script src="/static/table.js"></script>
 <div id="form-box" class="form">
     <div>
         <label for="year-select">Year </label>
-        <select id="year-select">
+        <select id="year-select" data-js-selected="{{year}}">
             {{#each years}}
             <option value="{{this}}">{{this}}</option>
             {{/each}}
@@ -12,7 +13,7 @@
     </div>
     <div>
         <label for="month-select">Month </label>
-        <select id="month-select">
+        <select id="month-select" data-js-selected="{{month}}">
             {{#each months}}
             <option value="{{this}}">{{this}}</option>
             {{/each}}
@@ -34,39 +35,13 @@
                 <td>{{date_time}}</td>
                 <td>{{weight}}</td>
                 <td>
-                    <input type="button" value="Delete" onclick="deleteMeasurement({{id}})" />
+                    <input type="button" value="Delete" data-js-delete-measurement="{{id}}" />
                 </td>
             </tr>
             {{/each}}
         </tbody>
     </table>
 </div>
-<script>
-    let yearSelect = document.getElementById('year-select');
-    yearSelect.value = "{{year}}";
-
-    let monthSelect = document.getElementById('month-select');
-    monthSelect.value = "{{month}}";
-
-    document.getElementById('year-select').addEventListener("change", function() {
-        window.location.href = window.location.pathname + "?year=" + this.value;
-    });
-
-    document.getElementById('month-select').addEventListener("change", function() {
-        window.location.href = window.location.pathname + "?year={{year}}" + "&month=" + this.value;
-    });
-
-    function deleteMeasurement(id) {
-        const confirmText = "Do you really want to delete the measurement?";
-        if (confirm(confirmText) === true) {
-            fetch('/api/measurements/' + id, {
-                method: 'DELETE',
-            }).then(response => {
-                window.location.reload();
-            });
-        }
-    }
-</script>
 {{else}}
 <div>
     <h1 class="title">There are no measurements</h1>
