@@ -35,24 +35,6 @@ async fn render_chart(
         .ok_or(ApiError::UserNotFound)?
         .id;
 
-    let start_date: DateTime<FixedOffset> = match params.get("start-date") {
-        Some(d) => Local::now()
-            .timezone()
-            .from_local_datetime(
-                &NaiveDate::parse_from_str(d, "%Y-%m-%d")
-                    .map_err(|_| ApiError::InvalidDateTime)?
-                    .and_hms_opt(0, 0, 0)
-                    .expect("manually set time should be valid"),
-            )
-            .unwrap()
-            .into(),
-        None => (Local::now()
-            .with_time(NaiveTime::from_hms_opt(0, 0, 0).expect("manually set time should be valid"))
-            .unwrap()
-            - Duration::days(30))
-        .into(),
-    };
-
     let end_date: DateTime<FixedOffset> = match params.get("end-date") {
         Some(d) => Local::now()
             .timezone()
@@ -66,10 +48,25 @@ async fn render_chart(
             .into(),
         None => Local::now()
             .with_time(
-                NaiveTime::from_hms_milli_opt(23, 59, 59, 999).expect("time should be valid"),
+                NaiveTime::from_hms_milli_opt(23, 59, 59, 999)
+                    .expect("manually set time should be valid"),
             )
             .unwrap()
             .into(),
+    };
+
+    let start_date: DateTime<FixedOffset> = match params.get("start-date") {
+        Some(d) => Local::now()
+            .timezone()
+            .from_local_datetime(
+                &NaiveDate::parse_from_str(d, "%Y-%m-%d")
+                    .map_err(|_| ApiError::InvalidDateTime)?
+                    .and_hms_opt(0, 0, 0)
+                    .expect("manually set time should be valid"),
+            )
+            .unwrap()
+            .into(),
+        None => end_date.with_time(NaiveTime::MIN).unwrap() - Duration::days(30),
     };
 
     let measurements: Vec<Measurement> =
