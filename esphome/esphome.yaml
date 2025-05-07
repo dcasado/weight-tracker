@@ -74,6 +74,18 @@ mqtt:
   password: !secret mqtt_password
   discover_ip: false
   discovery: false
+  # Clean state when connecting to MQTT to avoid sending duplicate measurements on reconnection
+  on_connect:
+    - lambda: |-
+        id(weight_miscale).publish_state(0.00);
+    - lambda: |-
+        id(impedance_miscale).publish_state(0);
+  # Clean state when disconnecting from MQTT to avoid sending duplicate measurements on reconnection
+  on_disconnect:
+    - lambda: |-
+        id(weight_miscale).publish_state(0.00);
+    - lambda: |-
+        id(impedance_miscale).publish_state(0);
 
 logger:
   level: INFO
