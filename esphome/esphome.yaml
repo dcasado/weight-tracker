@@ -23,7 +23,7 @@ sensor:
       name: "Xiaomi Mi Scale Weight"
       id: weight_miscale
       filters:
-        - throttle: 30s
+        - throttle: 15s
       qos: 2
       retain: false
 
@@ -31,7 +31,7 @@ sensor:
       name: "Xiaomi Mi Scale Impedance"
       id: impedance_miscale
       filters:
-        - throttle: 30s
+        - throttle: 15s
       qos: 2
       retain: false
 
