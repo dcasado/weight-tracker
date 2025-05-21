@@ -12,7 +12,10 @@ use serde_json::json;
 
 use crate::{
     app_state::AppState,
-    domain::{measurement::Measurement, user::UserId},
+    domain::{
+        measurement::{Measurement, MeasurementId, Weight},
+        user::UserId,
+    },
     error::ApiError,
     repositories,
 };
@@ -128,6 +131,18 @@ async fn render_chart(
         .map(|m| Into::<f64>::into(m.weight.clone()))
         .fold(f64::MIN, f64::max);
 
+    let last_weight: f64 = measurements
+        .last()
+        .unwrap_or(&Measurement {
+            id: MeasurementId::new(0),
+            user_id: UserId::new(0),
+            date_time: Local::now().into(),
+            weight: Weight::new(0.0).expect("Weight with value 0.0 must be valid"),
+        })
+        .weight
+        .clone()
+        .into();
+
     let slope: f64 = calculate_slope(measurements);
     let trend_emoji: &str = if slope > 0.0 { "↗️" } else { "↘️" };
 
@@ -142,6 +157,7 @@ async fn render_chart(
         "alert_message": alert_message,
         "min_weight": min_weight,
         "max_weight": max_weight,
+        "last_weight": last_weight,
         "trend": trend_emoji
     });
 
