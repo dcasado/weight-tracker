@@ -24,7 +24,8 @@ document.addEventListener("DOMContentLoaded", _ => {
   chart = new Chart(weightChart, {
     type: 'line',
     options: {
-      aspectRatio: 1.25,
+      responsive: true,
+      maintainAspectRatio: false,
       animation: false
     },
     data: {

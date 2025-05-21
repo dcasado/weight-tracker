@@ -4,26 +4,32 @@
 {{#*inline "content"}}
 {{> navigation}}
 <script src="/static/chart.js"></script>
-<div id="dates-div" class="form">
+<div id="chart-container">
+  <div id="dates-div" class="form">
     <label for="start-date">From
-        <input type="date" id="start-date" name="start-date" required value="{{start_date}}" max="{{end_date}}"/>
+      <input type="date" id="start-date" name="start-date" required value="{{start_date}}" max="{{end_date}}"/>
     </label>
     <label for="end-date">To
-        <input type="date" id="end-date" name="end-date" required value="{{end_date}}" min="{{start_date}}"/>
+      <input type="date" id="end-date" name="end-date" required value="{{end_date}}" min="{{start_date}}"/>
     </label>
-</div>
-<div id="chart-div" data-js-dates={{dates}} data-js-weights={{weights}}>
+  </div>
+  <div id="chart-div" data-js-dates={{dates}} data-js-weights={{weights}}>
     <canvas id="weight-chart"></canvas>
-</div>
-{{#if alert_message}}
-<div class="alert">
+  </div>
+  {{#if alert_message}}
+  <div class="alert">
     {{{alert_message}}}
-</div>
-{{/if}}
-<div class="centered-div">
-  <p>Min weight: {{min_weight}}</p>
-  <p>Max weight: {{max_weight}}</p>
-  <p>Trend: {{trend}}</p>
+  </div>
+  {{/if}}
+  <div class="centered-div">
+    <div>
+      <p>Min weight</br><b>{{min_weight}}</b></p>
+      <p>Max weight</br><b>{{max_weight}}</b></p>
+    </div>
+    <div>
+      <p>Trend: {{trend}}</p>
+    </div>
+  </div>
 </div>
 {{/inline}}
 {{> base}}

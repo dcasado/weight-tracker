@@ -47,8 +47,15 @@ nav {
     }
 }
 
+#chart-container {
+  display: flex;
+  flex-direction: column;
+  height: 90vh;
+}
+
 #chart-div {
-    margin-top: 0.5em;
+  flex: 1 1 auto;
+  margin-top: 0.5em;
 }
 
 .alert {
@@ -60,6 +67,7 @@ nav {
 .form {
   display: flex;
   flex-direction: row;
+  flex: 0 1 auto;
   align-items: center;
   justify-content: space-evenly;
   padding: 1em 0;
@@ -68,13 +76,21 @@ nav {
 .centered-div {
   display: flex;
   flex-direction: row;
+  flex: 0 1 auto;
   align-items: center;
   justify-content: space-evenly;
   flex-wrap: wrap;
+  padding-top: 0.5em;
 
-  p {
-    flex: 1 0 50%;
-    text-align: center;
+  div {
+    flex: 1 1 auto;
+    flex-direction: column;
+
+    p {
+      flex: 1 0 50%;
+      text-align: center;
+      margin: 0.25em auto;
+    }
   }
 }
 
