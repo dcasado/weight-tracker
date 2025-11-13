@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::app_state::AppState;
-use crate::domain::measurement::{Measurement, MeasurementId, Weight};
+use crate::domain::measurement::{Impedance, Measurement, MeasurementId, Weight};
 use crate::domain::user::UserId;
 use crate::error::ApiError;
 use crate::repositories;
@@ -21,6 +21,7 @@ struct PostMeasurement {
     user_id: i64,
     date_time: String,
     weight: f64,
+    impedance: i64,
 }
 
 #[derive(Serialize)]
@@ -55,8 +56,16 @@ async fn add_measurement(
 
     let weight = Weight::try_from(body.weight)?;
 
-    repositories::measurements::insert_measurement(&state.pool, &user_id, &date_time, &weight)
-        .await?;
+    let impedance = Impedance::try_from(body.impedance)?;
+
+    repositories::measurements::insert_measurement(
+        &state.pool,
+        &user_id,
+        &date_time,
+        &weight,
+        &impedance,
+    )
+    .await?;
 
     Ok(StatusCode::CREATED)
 }

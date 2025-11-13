@@ -69,6 +69,32 @@ impl AsRef<f64> for Weight {
     }
 }
 
+#[derive(Clone)]
+pub struct Impedance(i64);
+
+impl Impedance {
+    pub fn new(impedance: i64) -> Result<Impedance, ApiError> {
+        if impedance < 0 {
+            return Err(ApiError::NegativeWeight);
+        }
+        Ok(Impedance(impedance))
+    }
+}
+
+impl TryFrom<i64> for Impedance {
+    type Error = ApiError;
+
+    fn try_from(value: i64) -> Result<Self, Self::Error> {
+        Self::new(value)
+    }
+}
+
+impl From<&Impedance> for i64 {
+    fn from(value: &Impedance) -> Self {
+        value.0
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -93,6 +119,29 @@ mod tests {
                 Ok(())
             }
             Err(_) => Err("Weight must be possitive".to_string()),
+        }
+    }
+
+    #[test]
+    fn negative_impedance_is_invalid() -> Result<(), String> {
+        let negative_impedance = -1;
+
+        match Impedance::try_from(negative_impedance) {
+            Ok(_) => Err("Impedance cannot be negative".to_string()),
+            Err(_) => Ok(()),
+        }
+    }
+
+    #[test]
+    fn positive_impedance_is_valid() -> Result<(), String> {
+        let impedance = 1;
+
+        match Impedance::try_from(impedance) {
+            Ok(w) => {
+                assert_eq!(w.0, 1, "Impedance does not match");
+                Ok(())
+            }
+            Err(_) => Err("Impedance must be possitive".to_string()),
         }
     }
 }

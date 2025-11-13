@@ -3,7 +3,7 @@ use sqlx::{Pool, Sqlite};
 
 use crate::{
     domain::{
-        measurement::{Measurement, MeasurementId, Weight},
+        measurement::{Impedance, Measurement, MeasurementId, Weight},
         user::UserId,
     },
     error::ApiError,
@@ -14,15 +14,18 @@ pub async fn insert_measurement(
     user_id: &UserId,
     date_time: &DateTime<FixedOffset>,
     weight: &Weight,
+    impedance: &Impedance,
 ) -> Result<(), ApiError> {
     let user_id: i64 = user_id.into();
     let weight: f64 = weight.into();
+    let impedance: i64 = impedance.into();
 
     let _ = sqlx::query!(
-        r#"INSERT INTO measurements (user_id, date_time, weight) VALUES ($1, $2, $3)"#,
+        r#"INSERT INTO measurements (user_id, date_time, weight, impedance) VALUES ($1, $2, $3, $4)"#,
         user_id,
         date_time,
-        weight
+        weight,
+        impedance
     )
     .execute(pool)
     .await
