@@ -12,7 +12,7 @@ use serde_json::json;
 
 use crate::{
     app_state::AppState,
-    domain::{measurement::Measurement, user::UserId},
+    domain::{user::UserId, weight::Weight},
     error::ApiError,
     repositories,
 };
@@ -56,22 +56,17 @@ async fn render_table(
         .unwrap_or(months.first().map(String::as_str).unwrap_or_default());
 
     let measurements: Vec<MeasurementResponse> =
-        repositories::measurements::find_measurements_by_year_month(
-            &state.pool,
-            &user_id,
-            year,
-            month,
-        )
-        .await?
-        .into_iter()
-        .map(|m: Measurement| MeasurementResponse {
-            id: m.id.into(),
-            date_time: DateTime::<Local>::from(m.date_time)
-                .format("%Y-%m-%d %H:%M")
-                .to_string(),
-            weight: m.weight.into(),
-        })
-        .collect();
+        repositories::measurements::find_weights_by_year_month(&state.pool, &user_id, year, month)
+            .await?
+            .into_iter()
+            .map(|m: Weight| MeasurementResponse {
+                id: m.weight_id.into(),
+                date_time: DateTime::<Local>::from(m.measured_at)
+                    .format("%Y-%m-%d %H:%M")
+                    .to_string(),
+                weight: m.kilograms.into(),
+            })
+            .collect();
 
     let user_id: i64 = user_id.into();
     let data = json!({

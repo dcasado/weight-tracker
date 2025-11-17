@@ -1,10 +1,10 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT id, user_id, date_time, weight FROM measurements WHERE user_id = $1 AND strftime('%Y', date_time) = $2 AND strftime('%m', date_time) = $3 ORDER BY date_time DESC",
+  "query": "SELECT weight_id, user_id, measured_at, kilograms FROM weight WHERE user_id = $1 AND measured_at BETWEEN $2 AND $3 ORDER BY measured_at ASC",
   "describe": {
     "columns": [
       {
-        "name": "id",
+        "name": "weight_id",
         "ordinal": 0,
         "type_info": "Integer"
       },
@@ -14,12 +14,12 @@
         "type_info": "Integer"
       },
       {
-        "name": "date_time",
+        "name": "measured_at",
         "ordinal": 2,
         "type_info": "Text"
       },
       {
-        "name": "weight",
+        "name": "kilograms",
         "ordinal": 3,
         "type_info": "Float"
       }
@@ -34,5 +34,5 @@
       false
     ]
   },
-  "hash": "80702e197a817409c4e14c149d4b333d3200f89b6d1723333fc54e1ed809dbbd"
+  "hash": "2085b728119f3a3594776b55286cdac2c5798b45a119605bbc1df960444658d3"
 }

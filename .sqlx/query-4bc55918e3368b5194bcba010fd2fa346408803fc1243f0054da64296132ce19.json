@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT DISTINCT strftime('%m', date_time) AS month FROM measurements WHERE user_id = $1 AND strftime('%Y', date_time) = $2 ORDER BY month DESC",
+  "query": "SELECT DISTINCT strftime('%m', measured_at) AS month FROM weight WHERE user_id = $1 AND strftime('%Y', measured_at) = $2 ORDER BY month DESC",
   "describe": {
     "columns": [
       {
@@ -16,5 +16,5 @@
       true
     ]
   },
-  "hash": "d3d7f285e0895304a9901a16d2658189ff547da98599701dad61c00eaaa8c1a5"
+  "hash": "4bc55918e3368b5194bcba010fd2fa346408803fc1243f0054da64296132ce19"
 }

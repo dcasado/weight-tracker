@@ -13,8 +13,8 @@ use serde_json::json;
 use crate::{
     app_state::AppState,
     domain::{
-        measurement::{Measurement, MeasurementId, Weight},
         user::UserId,
+        weight::{Kilograms, Weight, WeightId},
     },
     error::ApiError,
     repositories,
@@ -72,46 +72,45 @@ async fn render_chart(
         None => end_date.with_time(NaiveTime::MIN).unwrap() - Duration::days(30),
     };
 
-    let measurements: Vec<Measurement> =
-        repositories::measurements::find_measurements_between_dates(
-            &state.pool,
-            &user_id,
-            &start_date,
-            &end_date,
-        )
-        .await?
-        .into_iter()
-        .collect();
+    let weights: Vec<Weight> = repositories::measurements::find_weights_between_dates(
+        &state.pool,
+        &user_id,
+        &start_date,
+        &end_date,
+    )
+    .await?
+    .into_iter()
+    .collect();
 
     let mut dates: Vec<NaiveDate> = vec![];
-    let mut weights: Vec<Option<f64>> = vec![];
+    let mut weight_kilograms: Vec<Option<f64>> = vec![];
 
     let mut current_date = start_date;
     let mut i = 0;
     while current_date < end_date {
         dates.push(current_date.date_naive());
-        if i < measurements.len() {
-            let measurement = measurements.get(i).unwrap();
-            if current_date.date_naive() == measurement.date_time.date_naive() {
-                let weight = &measurement.weight;
-                weights.push(Some(weight.into()));
+        if i < weights.len() {
+            let weight = weights.get(i).unwrap();
+            if current_date.date_naive() == weight.measured_at.date_naive() {
+                let kilograms = &weight.kilograms;
+                weight_kilograms.push(Some(kilograms.into()));
                 i += 1;
             } else {
-                weights.push(None);
+                weight_kilograms.push(None);
             }
         } else {
-            weights.push(None);
+            weight_kilograms.push(None);
         }
         current_date += Duration::days(1);
     }
 
-    let duplicate_measurements =
-        repositories::measurements::find_duplicate_measurements(&state.pool, &user_id).await?;
+    let duplicate_weights =
+        repositories::measurements::find_duplicate_weights(&state.pool, &user_id).await?;
     let mut alert_message = "".to_string();
-    if !duplicate_measurements.is_empty() {
+    if !duplicate_weights.is_empty() {
         alert_message = format!(
             "<p>There are duplicate measurements on the follwing dates.</p> <ul>{}</ul>",
-            duplicate_measurements
+            duplicate_weights
                 .into_iter()
                 .fold(String::new(), |mut output, d| {
                     let _ = write!(output, "<li>{}</li>", d.0);
@@ -121,29 +120,29 @@ async fn render_chart(
         .to_string();
     }
 
-    let min_weight: f64 = measurements
+    let min_weight: f64 = weights
         .iter()
-        .map(|m| Into::<f64>::into(m.weight.clone()))
+        .map(|m| Into::<f64>::into(m.kilograms.clone()))
         .fold(f64::MAX, f64::min);
 
-    let max_weight: f64 = measurements
+    let max_weight: f64 = weights
         .iter()
-        .map(|m| Into::<f64>::into(m.weight.clone()))
+        .map(|m| Into::<f64>::into(m.kilograms.clone()))
         .fold(f64::MIN, f64::max);
 
-    let last_weight: f64 = measurements
+    let last_weight: f64 = weights
         .last()
-        .unwrap_or(&Measurement {
-            id: MeasurementId::new(0),
+        .unwrap_or(&Weight {
+            weight_id: WeightId::new(0),
             user_id: UserId::new(0),
-            date_time: Local::now().into(),
-            weight: Weight::new(0.0).expect("Weight with value 0.0 must be valid"),
+            measured_at: Local::now().into(),
+            kilograms: Kilograms::new(0.0).expect("Weight with value 0.0 must be valid"),
         })
-        .weight
+        .kilograms
         .clone()
         .into();
 
-    let slope: f64 = calculate_slope(measurements);
+    let slope: f64 = calculate_slope(weights);
     let trend_emoji: &str = if slope > 0.0 { "↗️" } else { "↘️" };
 
     let user_id: i64 = user_id.into();
@@ -153,7 +152,7 @@ async fn render_chart(
         "start_date": start_date.date_naive(),
         "end_date": end_date.date_naive(),
         "dates": serde_json::to_string(&dates).map_err(|e| ApiError::Unexpected(Box::new(e)))?,
-        "weights": serde_json::to_string(&weights).map_err(|e| ApiError::Unexpected(Box::new(e)))?,
+        "weights": serde_json::to_string(&weight_kilograms).map_err(|e| ApiError::Unexpected(Box::new(e)))?,
         "alert_message": alert_message,
         "min_weight": min_weight,
         "max_weight": max_weight,
@@ -169,26 +168,23 @@ async fn render_chart(
     Ok(Html(template))
 }
 
-fn calculate_slope(measurements: Vec<Measurement>) -> f64 {
-    let n = measurements.len() as f64;
+fn calculate_slope(weights: Vec<Weight>) -> f64 {
+    let n = weights.len() as f64;
 
-    let weights: Vec<f64> = measurements
-        .iter()
-        .map(|m| m.weight.clone().into())
-        .collect();
+    let weight_kilograms: Vec<f64> = weights.iter().map(|w| w.kilograms.clone().into()).collect();
 
-    let timestamps: Vec<f64> = measurements
+    let timestamps: Vec<f64> = weights
         .iter()
-        .map(|m| m.date_time.num_days_from_ce() as f64)
+        .map(|w| w.measured_at.num_days_from_ce() as f64)
         .collect();
 
     let sum_x: f64 = timestamps.iter().sum();
     let sum_x_square: f64 = timestamps.iter().map(|v| v * v).sum();
-    let sum_y: f64 = weights.iter().sum();
+    let sum_y: f64 = weight_kilograms.iter().sum();
     let mut sum_xy: f64 = 0.0;
 
-    for i in 0..measurements.len() {
-        sum_xy += weights[i] * timestamps[i];
+    for i in 0..weights.len() {
+        sum_xy += weight_kilograms[i] * timestamps[i];
     }
 
     (n * sum_xy - sum_x * sum_y) / (n * sum_x_square - (sum_x * sum_x))

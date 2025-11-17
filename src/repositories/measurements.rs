@@ -3,26 +3,26 @@ use sqlx::{Pool, Sqlite};
 
 use crate::{
     domain::{
-        measurement::{Measurement, MeasurementId, Weight},
         user::UserId,
+        weight::{Kilograms, Weight, WeightId},
     },
     error::ApiError,
 };
 
-pub async fn insert_measurement(
+pub async fn insert_weight(
     pool: &Pool<Sqlite>,
     user_id: &UserId,
-    date_time: &DateTime<FixedOffset>,
-    weight: &Weight,
+    measured_at: &DateTime<FixedOffset>,
+    kilograms: &Kilograms,
 ) -> Result<(), ApiError> {
     let user_id: i64 = user_id.into();
-    let weight: f64 = weight.into();
+    let kilograms: f64 = kilograms.into();
 
     let _ = sqlx::query!(
-        r#"INSERT INTO measurements (user_id, date_time, weight) VALUES ($1, $2, $3)"#,
+        r#"INSERT INTO weight (user_id, measured_at, kilograms) VALUES ($1, $2, $3)"#,
         user_id,
-        date_time,
-        weight
+        measured_at,
+        kilograms
     )
     .execute(pool)
     .await
@@ -31,24 +31,24 @@ pub async fn insert_measurement(
     Ok(())
 }
 
-pub async fn find_measurements_by_year_month(
+pub async fn find_weights_by_year_month(
     pool: &Pool<Sqlite>,
     user_id: &UserId,
     year: &str,
     month: &str,
-) -> Result<Vec<Measurement>, ApiError> {
+) -> Result<Vec<Weight>, ApiError> {
     struct Row {
-        id: i64,
+        weight_id: i64,
         user_id: i64,
-        date_time: String,
-        weight: f64,
+        measured_at: String,
+        kilograms: f64,
     }
 
     let user_id: i64 = user_id.into();
 
     let rows = sqlx::query_as!(
         Row,
-        r#"SELECT id, user_id, date_time, weight FROM measurements WHERE user_id = $1 AND strftime('%Y', date_time) = $2 AND strftime('%m', date_time) = $3 ORDER BY date_time DESC"#,
+        r#"SELECT weight_id, user_id, measured_at, kilograms FROM weight WHERE user_id = $1 AND strftime('%Y', measured_at) = $2 AND strftime('%m', measured_at) = $3 ORDER BY measured_at DESC"#,
         user_id,
         year,
         month
@@ -59,35 +59,35 @@ pub async fn find_measurements_by_year_month(
 
     rows.into_iter()
         .map(|r| {
-            Ok(Measurement {
-                id: MeasurementId::new(r.id),
+            Ok(Weight {
+                weight_id: WeightId::new(r.weight_id),
                 user_id: UserId::new(r.user_id),
-                date_time: DateTime::parse_from_rfc3339(r.date_time.as_str())
+                measured_at: DateTime::parse_from_rfc3339(r.measured_at.as_str())
                     .map_err(|e| ApiError::Unexpected(Box::new(e)))?,
-                weight: Weight::new(r.weight)?,
+                kilograms: Kilograms::new(r.kilograms)?,
             })
         })
         .collect()
 }
 
-pub async fn find_measurements_between_dates(
+pub async fn find_weights_between_dates(
     pool: &Pool<Sqlite>,
     user_id: &UserId,
     start_date: &DateTime<FixedOffset>,
     end_date: &DateTime<FixedOffset>,
-) -> Result<Vec<Measurement>, ApiError> {
+) -> Result<Vec<Weight>, ApiError> {
     struct Row {
-        id: i64,
+        weight_id: i64,
         user_id: i64,
-        date_time: String,
-        weight: f64,
+        measured_at: String,
+        kilograms: f64,
     }
 
     let user_id: i64 = user_id.into();
 
     let rows = sqlx::query_as!(
         Row,
-        r#"SELECT id, user_id, date_time, weight FROM measurements WHERE user_id = $1 AND date_time BETWEEN $2 AND $3 ORDER BY date_time ASC"#,
+        r#"SELECT weight_id, user_id, measured_at, kilograms FROM weight WHERE user_id = $1 AND measured_at BETWEEN $2 AND $3 ORDER BY measured_at ASC"#,
         user_id,
         start_date,
         end_date
@@ -98,18 +98,18 @@ pub async fn find_measurements_between_dates(
 
     rows.into_iter()
         .map(|r| {
-            Ok(Measurement {
-                id: MeasurementId::new(r.id),
+            Ok(Weight {
+                weight_id: WeightId::new(r.weight_id),
                 user_id: UserId::new(r.user_id),
-                date_time: DateTime::parse_from_rfc3339(r.date_time.as_str())
+                measured_at: DateTime::parse_from_rfc3339(r.measured_at.as_str())
                     .map_err(|e| ApiError::Unexpected(Box::new(e)))?,
-                weight: Weight::new(r.weight)?,
+                kilograms: Kilograms::new(r.kilograms)?,
             })
         })
         .collect()
 }
 
-pub async fn find_duplicate_measurements(
+pub async fn find_duplicate_weights(
     pool: &Pool<Sqlite>,
     user_id: &UserId,
 ) -> Result<Vec<(String, i64)>, ApiError> {
@@ -121,7 +121,7 @@ pub async fn find_duplicate_measurements(
     let user_id: i64 = user_id.into();
     let result = sqlx::query_as!(
         Row,
-        r#"SELECT date(date_time, 'localtime') AS date, COUNT(*) as counter FROM measurements WHERE user_id = $1 GROUP BY date HAVING COUNT(*) > 1"#,
+        r#"SELECT date(measured_at, 'localtime') AS date, COUNT(*) as counter FROM weight WHERE user_id = $1 GROUP BY date HAVING COUNT(*) > 1"#,
         user_id
     )
     .fetch_all(pool)
@@ -149,7 +149,7 @@ pub async fn find_years(pool: &Pool<Sqlite>, user_id: &UserId) -> Result<Vec<Str
 
     let year_result = sqlx::query_as!(
         Row,
-        r#"SELECT DISTINCT strftime('%Y', date_time) AS year FROM measurements WHERE user_id = $1 ORDER BY year DESC"#,
+        r#"SELECT DISTINCT strftime('%Y', measured_at) AS year FROM weight WHERE user_id = $1 ORDER BY year DESC"#,
         user_id
     )
     .fetch_all(pool)
@@ -178,7 +178,7 @@ pub async fn find_months_by_year(
 
     let month_result = sqlx::query_as!(
         Row,
-        r#"SELECT DISTINCT strftime('%m', date_time) AS month FROM measurements WHERE user_id = $1 AND strftime('%Y', date_time) = $2 ORDER BY month DESC"#,
+        r#"SELECT DISTINCT strftime('%m', measured_at) AS month FROM weight WHERE user_id = $1 AND strftime('%Y', measured_at) = $2 ORDER BY month DESC"#,
         user_id,
         year
     )
@@ -195,10 +195,10 @@ pub async fn find_months_by_year(
         .collect())
 }
 
-pub async fn delete_measurement(pool: &Pool<Sqlite>, id: &MeasurementId) -> Result<(), ApiError> {
-    let id: i64 = id.into();
+pub async fn delete_weight(pool: &Pool<Sqlite>, weight_id: &WeightId) -> Result<(), ApiError> {
+    let weight_id: i64 = weight_id.into();
 
-    let result = sqlx::query!(r#"DELETE FROM measurements WHERE id = $1"#, id)
+    let result = sqlx::query!(r#"DELETE FROM weight WHERE weight_id = $1"#, weight_id)
         .execute(pool)
         .await
         .map_err(|e| ApiError::Unexpected(Box::new(e)))?;

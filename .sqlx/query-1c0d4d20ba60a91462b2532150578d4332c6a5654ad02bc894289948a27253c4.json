@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO weight (user_id, measured_at, kilograms) VALUES ($1, $2, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "1c0d4d20ba60a91462b2532150578d4332c6a5654ad02bc894289948a27253c4"
+}

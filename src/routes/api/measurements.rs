@@ -11,8 +11,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::app_state::AppState;
-use crate::domain::measurement::{Measurement, MeasurementId, Weight};
 use crate::domain::user::UserId;
+use crate::domain::weight::{Kilograms, Weight, WeightId};
 use crate::error::ApiError;
 use crate::repositories;
 
@@ -32,12 +32,12 @@ struct MeasurementResponse {
 
 pub fn measurements(state: AppState) -> Router {
     Router::new()
-        .route("/measurements", get(get_measurements).post(add_measurement))
-        .route("/measurements/{id}", delete(delete_measurement))
+        .route("/measurements", get(get_weights).post(add_weight))
+        .route("/measurements/{weight_id}", delete(delete_weight))
         .with_state(state)
 }
 
-async fn add_measurement(
+async fn add_weight(
     State(state): State<AppState>,
     Json(body): Json<PostMeasurement>,
 ) -> Result<StatusCode, ApiError> {
@@ -48,20 +48,20 @@ async fn add_measurement(
         .ok_or(ApiError::UserNotFound)?
         .id;
 
-    let date_time = body
+    let measured_at = body
         .date_time
         .parse::<DateTime<FixedOffset>>()
         .map_err(|_| ApiError::InvalidDateTime)?;
 
-    let weight = Weight::try_from(body.weight)?;
+    let kilograms = Kilograms::try_from(body.weight)?;
 
-    repositories::measurements::insert_measurement(&state.pool, &user_id, &date_time, &weight)
+    repositories::measurements::insert_weight(&state.pool, &user_id, &measured_at, &kilograms)
         .await?;
 
     Ok(StatusCode::CREATED)
 }
 
-async fn get_measurements(
+async fn get_weights(
     State(state): State<AppState>,
     Query(params): Query<HashMap<String, String>>,
     headers: HeaderMap,
@@ -91,7 +91,7 @@ async fn get_measurements(
         .id;
 
     let measurements: Vec<MeasurementResponse> =
-        repositories::measurements::find_measurements_between_dates(
+        repositories::measurements::find_weights_between_dates(
             &state.pool,
             &user_id,
             &start_date,
@@ -99,10 +99,10 @@ async fn get_measurements(
         )
         .await?
         .into_iter()
-        .map(|m: Measurement| MeasurementResponse {
-            id: m.id.into(),
-            date_time: DateTime::<Local>::from(m.date_time).to_rfc3339(),
-            weight: m.weight.into(),
+        .map(|w: Weight| MeasurementResponse {
+            id: w.weight_id.into(),
+            date_time: DateTime::<Local>::from(w.measured_at).to_rfc3339(),
+            weight: w.kilograms.into(),
         })
         .collect();
 
@@ -150,13 +150,13 @@ fn generate_csv(measurements: Vec<MeasurementResponse>) -> String {
         })
 }
 
-async fn delete_measurement(
+async fn delete_weight(
     State(state): State<AppState>,
-    Path(id): Path<i64>,
+    Path(weight_id): Path<i64>,
 ) -> Result<StatusCode, ApiError> {
-    let id = MeasurementId::new(id);
+    let weight_id = WeightId::new(weight_id);
 
-    repositories::measurements::delete_measurement(&state.pool, &id).await?;
+    repositories::measurements::delete_weight(&state.pool, &weight_id).await?;
 
     Ok(StatusCode::NO_CONTENT)
 }

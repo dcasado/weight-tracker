@@ -4,58 +4,58 @@ use crate::error::ApiError;
 
 use super::user::UserId;
 
-pub struct Measurement {
-    pub id: MeasurementId,
+pub struct Weight {
+    pub weight_id: WeightId,
     pub user_id: UserId,
-    pub date_time: DateTime<FixedOffset>,
-    pub weight: Weight,
+    pub measured_at: DateTime<FixedOffset>,
+    pub kilograms: Kilograms,
 }
 
-pub struct MeasurementId(i64);
+pub struct WeightId(i64);
 
-impl MeasurementId {
+impl WeightId {
     pub fn new(value: i64) -> Self {
         Self(value)
     }
 }
 
-impl From<MeasurementId> for i64 {
-    fn from(value: MeasurementId) -> Self {
+impl From<WeightId> for i64 {
+    fn from(value: WeightId) -> Self {
         value.0
     }
 }
 
-impl From<&MeasurementId> for i64 {
-    fn from(value: &MeasurementId) -> Self {
+impl From<&WeightId> for i64 {
+    fn from(value: &WeightId) -> Self {
         value.0
     }
 }
 
 #[derive(Clone)]
-pub struct Weight(f64);
+pub struct Kilograms(f64);
 
-impl Weight {
-    pub fn new(weight: f64) -> Result<Weight, ApiError> {
-        if weight < 0.0 {
+impl Kilograms {
+    pub fn new(value: f64) -> Result<Kilograms, ApiError> {
+        if value < 0.0 {
             return Err(ApiError::NegativeWeight);
         }
-        Ok(Weight(weight))
+        Ok(Kilograms(value))
     }
 }
 
-impl From<Weight> for f64 {
-    fn from(value: Weight) -> Self {
+impl From<Kilograms> for f64 {
+    fn from(value: Kilograms) -> Self {
         value.0
     }
 }
 
-impl From<&Weight> for f64 {
-    fn from(value: &Weight) -> Self {
+impl From<&Kilograms> for f64 {
+    fn from(value: &Kilograms) -> Self {
         value.0
     }
 }
 
-impl TryFrom<f64> for Weight {
+impl TryFrom<f64> for Kilograms {
     type Error = ApiError;
 
     fn try_from(value: f64) -> Result<Self, Self::Error> {
@@ -63,7 +63,7 @@ impl TryFrom<f64> for Weight {
     }
 }
 
-impl AsRef<f64> for Weight {
+impl AsRef<f64> for Kilograms {
     fn as_ref(&self) -> &f64 {
         &self.0
     }
@@ -77,7 +77,7 @@ mod tests {
     fn negative_weight_is_invalid() -> Result<(), String> {
         let negative_weight = -0.1;
 
-        match Weight::try_from(negative_weight) {
+        match Kilograms::try_from(negative_weight) {
             Ok(_) => Err("Weight cannot be negative".to_string()),
             Err(_) => Ok(()),
         }
@@ -87,7 +87,7 @@ mod tests {
     fn positive_weight_is_valid() -> Result<(), String> {
         let weight = 0.1;
 
-        match Weight::try_from(weight) {
+        match Kilograms::try_from(weight) {
             Ok(w) => {
                 assert_eq!(w.0, 0.1, "Weight does not match");
                 Ok(())

@@ -1,6 +1,6 @@
 {
   "db_name": "SQLite",
-  "query": "SELECT DISTINCT strftime('%Y', date_time) AS year FROM measurements WHERE user_id = $1 ORDER BY year DESC",
+  "query": "SELECT DISTINCT strftime('%Y', measured_at) AS year FROM weight WHERE user_id = $1 ORDER BY year DESC",
   "describe": {
     "columns": [
       {
@@ -16,5 +16,5 @@
       true
     ]
   },
-  "hash": "44292d028c8a94c89d2b6029293d8433c1bbd83b86fea6fc192d1efb1195c6da"
+  "hash": "70b40e49e9710d81579d9cbc317b283af37fdfce954c84797c2d6037f2fc4664"
 }
