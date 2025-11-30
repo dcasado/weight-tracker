@@ -63,12 +63,6 @@ impl TryFrom<f64> for Kilograms {
     }
 }
 
-impl AsRef<f64> for Kilograms {
-    fn as_ref(&self) -> &f64 {
-        &self.0
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
