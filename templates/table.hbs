@@ -30,12 +30,12 @@
             </tr>
         </thead>
         <tbody>
-            {{#each measurements}}
+            {{#each weights}}
             <tr>
-                <td>{{date_time}}</td>
-                <td>{{weight}}</td>
+                <td>{{measured_at}}</td>
+                <td>{{kilograms}}</td>
                 <td>
-                    <input type="button" value="Delete" data-js-delete-measurement="{{id}}" />
+                    <input type="button" value="Delete" data-js-delete-weight="{{weight_id}}" />
                 </td>
             </tr>
             {{/each}}
@@ -44,7 +44,7 @@
 </div>
 {{else}}
 <div>
-    <h1 class="title">There are no measurements</h1>
+    <h1 class="title">There are no weights</h1>
 </div>
 {{/if}}
 {{/inline}}

@@ -204,7 +204,7 @@ pub async fn delete_weight(pool: &Pool<Sqlite>, weight_id: &WeightId) -> Result<
         .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
     if result.rows_affected() == 0 {
-        return Err(ApiError::MeasurementNotFound);
+        return Err(ApiError::WeightNotFound);
     }
 
     Ok(())

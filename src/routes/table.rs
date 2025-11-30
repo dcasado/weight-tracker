@@ -36,10 +36,10 @@ async fn render_table(
         .id;
 
     #[derive(Serialize)]
-    struct MeasurementResponse {
-        id: i64,
-        date_time: String,
-        weight: f64,
+    struct WeightsResponse {
+        weight_id: i64,
+        measured_at: String,
+        kilograms: f64,
     }
 
     let years = repositories::measurements::find_years(&state.pool, &user_id).await?;
@@ -55,16 +55,16 @@ async fn render_table(
         .map(String::as_str)
         .unwrap_or(months.first().map(String::as_str).unwrap_or_default());
 
-    let measurements: Vec<MeasurementResponse> =
+    let weights: Vec<WeightsResponse> =
         repositories::measurements::find_weights_by_year_month(&state.pool, &user_id, year, month)
             .await?
             .into_iter()
-            .map(|m: Weight| MeasurementResponse {
-                id: m.weight_id.into(),
-                date_time: DateTime::<Local>::from(m.measured_at)
+            .map(|w: Weight| WeightsResponse {
+                weight_id: w.weight_id.into(),
+                measured_at: DateTime::<Local>::from(w.measured_at)
                     .format("%Y-%m-%d %H:%M")
                     .to_string(),
-                weight: m.kilograms.into(),
+                kilograms: w.kilograms.into(),
             })
             .collect();
 
@@ -75,7 +75,7 @@ async fn render_table(
         "year": year,
         "months": months,
         "month": month,
-        "measurements": measurements,
+        "weights": weights,
         "user_id": user_id
     });
 

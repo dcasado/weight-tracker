@@ -17,29 +17,29 @@ use crate::error::ApiError;
 use crate::repositories;
 
 #[derive(Deserialize)]
-struct PostMeasurement {
+struct PostWeight {
     user_id: i64,
-    date_time: String,
-    weight: f64,
+    measured_at: String,
+    kilograms: f64,
 }
 
 #[derive(Serialize)]
-struct MeasurementResponse {
-    id: i64,
-    date_time: String,
-    weight: f64,
+struct WeightResponse {
+    weight_id: i64,
+    measured_at: String,
+    kilograms: f64,
 }
 
 pub fn measurements(state: AppState) -> Router {
     Router::new()
-        .route("/measurements", get(get_weights).post(add_weight))
-        .route("/measurements/{weight_id}", delete(delete_weight))
+        .route("/measurements/weights", get(get_weights).post(add_weight))
+        .route("/measurements/weights/{weight_id}", delete(delete_weight))
         .with_state(state)
 }
 
 async fn add_weight(
     State(state): State<AppState>,
-    Json(body): Json<PostMeasurement>,
+    Json(body): Json<PostWeight>,
 ) -> Result<StatusCode, ApiError> {
     let user_id: UserId = UserId::new(body.user_id);
 
@@ -49,11 +49,11 @@ async fn add_weight(
         .id;
 
     let measured_at = body
-        .date_time
+        .measured_at
         .parse::<DateTime<FixedOffset>>()
         .map_err(|_| ApiError::InvalidDateTime)?;
 
-    let kilograms = Kilograms::try_from(body.weight)?;
+    let kilograms = Kilograms::try_from(body.kilograms)?;
 
     repositories::measurements::insert_weight(&state.pool, &user_id, &measured_at, &kilograms)
         .await?;
@@ -90,21 +90,20 @@ async fn get_weights(
         .ok_or(ApiError::UserNotFound)?
         .id;
 
-    let measurements: Vec<MeasurementResponse> =
-        repositories::measurements::find_weights_between_dates(
-            &state.pool,
-            &user_id,
-            &start_date,
-            &end_date,
-        )
-        .await?
-        .into_iter()
-        .map(|w: Weight| MeasurementResponse {
-            id: w.weight_id.into(),
-            date_time: DateTime::<Local>::from(w.measured_at).to_rfc3339(),
-            weight: w.kilograms.into(),
-        })
-        .collect();
+    let weights: Vec<WeightResponse> = repositories::measurements::find_weights_between_dates(
+        &state.pool,
+        &user_id,
+        &start_date,
+        &end_date,
+    )
+    .await?
+    .into_iter()
+    .map(|w: Weight| WeightResponse {
+        weight_id: w.weight_id.into(),
+        measured_at: DateTime::<Local>::from(w.measured_at).to_rfc3339(),
+        kilograms: w.kilograms.into(),
+    })
+    .collect();
 
     if let Some(accept_encoding_header) = headers.get(ACCEPT) {
         match accept_encoding_header.to_str().unwrap() {
@@ -112,11 +111,8 @@ async fn get_weights(
                 let response = Response::builder()
                     .status(StatusCode::OK)
                     .header(CONTENT_TYPE, "text/csv")
-                    .header(
-                        CONTENT_DISPOSITION,
-                        "attachment; filename=\"measurements.csv\"",
-                    )
-                    .body(generate_csv(measurements))
+                    .header(CONTENT_DISPOSITION, "attachment; filename=\"weights.csv\"")
+                    .body(generate_weights_csv(weights))
                     .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
                 Ok(response)
@@ -125,7 +121,7 @@ async fn get_weights(
                 let response = Response::builder()
                     .status(StatusCode::OK)
                     .header(CONTENT_TYPE, "application/json")
-                    .body(json!(measurements).to_string())
+                    .body(json!(weights).to_string())
                     .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
 
                 Ok(response)
@@ -137,17 +133,18 @@ async fn get_weights(
     }
 }
 
-fn generate_csv(measurements: Vec<MeasurementResponse>) -> String {
-    measurements
-        .iter()
-        .fold("id,date_time,weight".to_string(), |mut acc, measurement| {
+fn generate_weights_csv(weights: Vec<WeightResponse>) -> String {
+    weights.iter().fold(
+        "weight_id,measured_at,kilograms".to_string(),
+        |mut acc, weight| {
             let row = format!(
                 "\n{},{},{}",
-                measurement.id, measurement.date_time, measurement.weight
+                weight.weight_id, weight.measured_at, weight.kilograms
             );
             acc.push_str(row.as_str());
             acc
-        })
+        },
+    )
 }
 
 async fn delete_weight(

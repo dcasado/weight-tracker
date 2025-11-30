@@ -14,18 +14,18 @@ document.addEventListener("DOMContentLoaded", _ => {
     window.location.href = window.location.pathname + "?year=" + year + "&month=" + this.value;
   });
 
-  document.querySelectorAll("[data-js-delete-measurement]").forEach(element => {
+  document.querySelectorAll("[data-js-delete-weight]").forEach(element => {
     element.addEventListener('click', (event) => {
-      let id = element.getAttribute('data-js-delete-measurement');
-      deleteMeasurement(id);
+      let weight_id = element.getAttribute('data-js-delete-weight');
+      deleteWeight(weight_id);
     });
   });
 });
 
-function deleteMeasurement(id) {
-  const confirmText = "Do you really want to delete the measurement?";
+function deleteWeight(weight_id) {
+  const confirmText = "Do you really want to delete the weight?";
   if (confirm(confirmText) === true) {
-    fetch('/api/measurements/' + id, {
+    fetch('/api/measurements/weights/' + weight_id, {
       method: 'DELETE',
     }).then(response => {
       window.location.reload();

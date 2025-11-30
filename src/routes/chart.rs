@@ -109,7 +109,7 @@ async fn render_chart(
     let mut alert_message = "".to_string();
     if !duplicate_weights.is_empty() {
         alert_message = format!(
-            "<p>There are duplicate measurements on the follwing dates.</p> <ul>{}</ul>",
+            "<p>There are duplicate weights on the follwing dates.</p> <ul>{}</ul>",
             duplicate_weights
                 .into_iter()
                 .fold(String::new(), |mut output, d| {
