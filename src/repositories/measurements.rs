@@ -3,6 +3,7 @@ use sqlx::{Pool, Sqlite};
 
 use crate::{
     domain::{
+        impedance::{ImpedanceId, Ohms},
         user::UserId,
         weight::{Kilograms, Weight, WeightId},
     },
@@ -23,6 +24,28 @@ pub async fn insert_weight(
         user_id,
         measured_at,
         kilograms
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
+
+    Ok(())
+}
+
+pub async fn insert_impedance(
+    pool: &Pool<Sqlite>,
+    user_id: &UserId,
+    measured_at: &DateTime<FixedOffset>,
+    ohms: &Ohms,
+) -> Result<(), ApiError> {
+    let user_id: i64 = user_id.into();
+    let ohms: f64 = ohms.into();
+
+    let _ = sqlx::query!(
+        r#"INSERT INTO impedance (user_id, measured_at, ohms) VALUES ($1, $2, $3)"#,
+        user_id,
+        measured_at,
+        ohms
     )
     .execute(pool)
     .await
@@ -205,6 +228,27 @@ pub async fn delete_weight(pool: &Pool<Sqlite>, weight_id: &WeightId) -> Result<
 
     if result.rows_affected() == 0 {
         return Err(ApiError::WeightNotFound);
+    }
+
+    Ok(())
+}
+
+pub async fn delete_impedance(
+    pool: &Pool<Sqlite>,
+    impedance_id: &ImpedanceId,
+) -> Result<(), ApiError> {
+    let impedance_id: i64 = impedance_id.into();
+
+    let result = sqlx::query!(
+        r#"DELETE FROM impedance WHERE impedance_id = $1"#,
+        impedance_id
+    )
+    .execute(pool)
+    .await
+    .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
+
+    if result.rows_affected() == 0 {
+        return Err(ApiError::ImpedanceNotFound);
     }
 
     Ok(())

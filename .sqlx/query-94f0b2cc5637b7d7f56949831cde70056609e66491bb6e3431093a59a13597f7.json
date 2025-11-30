@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "DELETE FROM impedance WHERE impedance_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 1
+    },
+    "nullable": []
+  },
+  "hash": "94f0b2cc5637b7d7f56949831cde70056609e66491bb6e3431093a59a13597f7"
+}

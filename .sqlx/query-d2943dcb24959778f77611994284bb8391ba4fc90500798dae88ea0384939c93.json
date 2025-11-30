@@ -1,0 +1,12 @@
+{
+  "db_name": "SQLite",
+  "query": "INSERT INTO impedance (user_id, measured_at, ohms) VALUES ($1, $2, $3)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": []
+  },
+  "hash": "d2943dcb24959778f77611994284bb8391ba4fc90500798dae88ea0384939c93"
+}

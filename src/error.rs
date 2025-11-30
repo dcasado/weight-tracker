@@ -15,6 +15,7 @@ pub enum ApiError {
     InvalidDateTime,
     NegativeWeight,
     WeightNotFound,
+    ImpedanceNotFound,
     UnsupportedMediaType,
 
     Unexpected(Box<dyn std::error::Error>),
@@ -46,6 +47,7 @@ impl IntoResponse for ApiError {
                 "Weight cannot be negative".to_string(),
             ),
             Self::WeightNotFound => (StatusCode::NOT_FOUND, "Weight not found".to_string()),
+            Self::ImpedanceNotFound => (StatusCode::NOT_FOUND, "Impedance not found".to_string()),
             Self::UnsupportedMediaType => (
                 StatusCode::UNSUPPORTED_MEDIA_TYPE,
                 "media type not supported".to_string(),

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use axum::extract::{Path, Query};
 use axum::http::header::{ACCEPT, CONTENT_DISPOSITION, CONTENT_TYPE};
 use axum::http::{HeaderMap, Response, StatusCode};
-use axum::routing::{delete, get};
+use axum::routing::{delete, get, post};
 use axum::Router;
 use axum::{extract::State, Json};
 use chrono::{DateTime, FixedOffset, Local};
@@ -11,6 +11,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::app_state::AppState;
+use crate::domain::impedance::{ImpedanceId, Ohms};
 use crate::domain::user::UserId;
 use crate::domain::weight::{Kilograms, Weight, WeightId};
 use crate::error::ApiError;
@@ -21,6 +22,13 @@ struct PostWeight {
     user_id: i64,
     measured_at: String,
     kilograms: f64,
+}
+
+#[derive(Deserialize)]
+struct PostImpedance {
+    user_id: i64,
+    measured_at: String,
+    ohms: f64,
 }
 
 #[derive(Serialize)]
@@ -34,6 +42,11 @@ pub fn measurements(state: AppState) -> Router {
     Router::new()
         .route("/measurements/weights", get(get_weights).post(add_weight))
         .route("/measurements/weights/{weight_id}", delete(delete_weight))
+        .route("/measurements/impedances", post(add_impedance))
+        .route(
+            "/measurements/impedances/{impedance_id}",
+            delete(delete_impedance),
+        )
         .with_state(state)
 }
 
@@ -56,6 +69,30 @@ async fn add_weight(
     let kilograms = Kilograms::try_from(body.kilograms)?;
 
     repositories::measurements::insert_weight(&state.pool, &user_id, &measured_at, &kilograms)
+        .await?;
+
+    Ok(StatusCode::CREATED)
+}
+
+async fn add_impedance(
+    State(state): State<AppState>,
+    Json(body): Json<PostImpedance>,
+) -> Result<StatusCode, ApiError> {
+    let user_id: UserId = UserId::new(body.user_id);
+
+    let user_id = repositories::users::find_user(&state.pool, &user_id)
+        .await?
+        .ok_or(ApiError::UserNotFound)?
+        .id;
+
+    let measured_at = body
+        .measured_at
+        .parse::<DateTime<FixedOffset>>()
+        .map_err(|_| ApiError::InvalidDateTime)?;
+
+    let ohms = Ohms::try_from(body.ohms)?;
+
+    repositories::measurements::insert_impedance(&state.pool, &user_id, &measured_at, &ohms)
         .await?;
 
     Ok(StatusCode::CREATED)
@@ -154,6 +191,17 @@ async fn delete_weight(
     let weight_id = WeightId::new(weight_id);
 
     repositories::measurements::delete_weight(&state.pool, &weight_id).await?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+async fn delete_impedance(
+    State(state): State<AppState>,
+    Path(impedance_id): Path<i64>,
+) -> Result<StatusCode, ApiError> {
+    let impedance_id = ImpedanceId::new(impedance_id);
+
+    repositories::measurements::delete_impedance(&state.pool, &impedance_id).await?;
 
     Ok(StatusCode::NO_CONTENT)
 }
