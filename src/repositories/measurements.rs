@@ -3,7 +3,7 @@ use sqlx::{Pool, Sqlite};
 
 use crate::{
     domain::{
-        impedance::{ImpedanceId, Ohms},
+        impedance::{Impedance, ImpedanceId, Ohms},
         user::UserId,
         weight::{Kilograms, Weight, WeightId},
     },
@@ -88,6 +88,45 @@ pub async fn find_weights_by_year_month(
                 measured_at: DateTime::parse_from_rfc3339(r.measured_at.as_str())
                     .map_err(|e| ApiError::Unexpected(Box::new(e)))?,
                 kilograms: Kilograms::new(r.kilograms)?,
+            })
+        })
+        .collect()
+}
+
+pub async fn find_impedances_between_dates(
+    pool: &Pool<Sqlite>,
+    user_id: &UserId,
+    start_date: &DateTime<FixedOffset>,
+    end_date: &DateTime<FixedOffset>,
+) -> Result<Vec<Impedance>, ApiError> {
+    struct Row {
+        impedance_id: i64,
+        user_id: i64,
+        measured_at: String,
+        ohms: f64,
+    }
+
+    let user_id: i64 = user_id.into();
+
+    let rows = sqlx::query_as!(
+        Row,
+        r#"SELECT impedance_id, user_id, measured_at, ohms FROM impedance WHERE user_id = $1 AND measured_at BETWEEN $2 AND $3 ORDER BY measured_at ASC"#,
+        user_id,
+        start_date,
+        end_date
+    )
+    .fetch_all(pool)
+    .await
+    .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
+
+    rows.into_iter()
+        .map(|r| {
+            Ok(Impedance {
+                impedance_id: ImpedanceId::new(r.impedance_id),
+                user_id: UserId::new(r.user_id),
+                measured_at: DateTime::parse_from_rfc3339(r.measured_at.as_str())
+                    .map_err(|e| ApiError::Unexpected(Box::new(e)))?,
+                ohms: Ohms::new(r.ohms)?,
             })
         })
         .collect()

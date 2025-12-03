@@ -43,6 +43,12 @@ impl Ohms {
     }
 }
 
+impl From<Ohms> for f64 {
+    fn from(value: Ohms) -> Self {
+        value.0
+    }
+}
+
 impl TryFrom<f64> for Ohms {
     type Error = ApiError;
 

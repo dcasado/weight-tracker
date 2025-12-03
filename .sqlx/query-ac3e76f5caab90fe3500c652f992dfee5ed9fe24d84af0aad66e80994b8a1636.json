@@ -1,0 +1,38 @@
+{
+  "db_name": "SQLite",
+  "query": "SELECT impedance_id, user_id, measured_at, ohms FROM impedance WHERE user_id = $1 AND measured_at BETWEEN $2 AND $3 ORDER BY measured_at ASC",
+  "describe": {
+    "columns": [
+      {
+        "name": "impedance_id",
+        "ordinal": 0,
+        "type_info": "Integer"
+      },
+      {
+        "name": "user_id",
+        "ordinal": 1,
+        "type_info": "Integer"
+      },
+      {
+        "name": "measured_at",
+        "ordinal": 2,
+        "type_info": "Text"
+      },
+      {
+        "name": "ohms",
+        "ordinal": 3,
+        "type_info": "Float"
+      }
+    ],
+    "parameters": {
+      "Right": 3
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "ac3e76f5caab90fe3500c652f992dfee5ed9fe24d84af0aad66e80994b8a1636"
+}

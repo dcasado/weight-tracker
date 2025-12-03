@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use axum::extract::{Path, Query};
 use axum::http::header::{ACCEPT, CONTENT_DISPOSITION, CONTENT_TYPE};
 use axum::http::{HeaderMap, Response, StatusCode};
-use axum::routing::{delete, get, post};
+use axum::routing::{delete, get};
 use axum::Router;
 use axum::{extract::State, Json};
 use chrono::{DateTime, FixedOffset, Local};
@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 use crate::app_state::AppState;
-use crate::domain::impedance::{ImpedanceId, Ohms};
+use crate::domain::impedance::{Impedance, ImpedanceId, Ohms};
 use crate::domain::user::UserId;
 use crate::domain::weight::{Kilograms, Weight, WeightId};
 use crate::error::ApiError;
@@ -38,11 +38,21 @@ struct WeightResponse {
     kilograms: f64,
 }
 
+#[derive(Serialize)]
+struct ImpedanceResponse {
+    impedance_id: i64,
+    measured_at: String,
+    ohms: f64,
+}
+
 pub fn measurements(state: AppState) -> Router {
     Router::new()
         .route("/measurements/weights", get(get_weights).post(add_weight))
         .route("/measurements/weights/{weight_id}", delete(delete_weight))
-        .route("/measurements/impedances", post(add_impedance))
+        .route(
+            "/measurements/impedances",
+            get(get_impedances).post(add_impedance),
+        )
         .route(
             "/measurements/impedances/{impedance_id}",
             delete(delete_impedance),
@@ -177,6 +187,93 @@ fn generate_weights_csv(weights: Vec<WeightResponse>) -> String {
             let row = format!(
                 "\n{},{},{}",
                 weight.weight_id, weight.measured_at, weight.kilograms
+            );
+            acc.push_str(row.as_str());
+            acc
+        },
+    )
+}
+
+async fn get_impedances(
+    State(state): State<AppState>,
+    Query(params): Query<HashMap<String, String>>,
+    headers: HeaderMap,
+) -> Result<Response<String>, ApiError> {
+    let user_id: UserId = UserId::new(match params.get("user_id") {
+        Some(id) => id.parse().map_err(|_| ApiError::InvalidUserId)?,
+        None => return Err(ApiError::MandatoryUserId),
+    });
+
+    let start_date: DateTime<FixedOffset> = match params.get("start_date") {
+        Some(d) => {
+            DateTime::<FixedOffset>::parse_from_rfc3339(d).map_err(|_| ApiError::InvalidDateTime)?
+        }
+        None => return Err(ApiError::MandatoryStartDate),
+    };
+
+    let end_date: DateTime<FixedOffset> = match params.get("end_date") {
+        Some(d) => {
+            DateTime::<FixedOffset>::parse_from_rfc3339(d).map_err(|_| ApiError::InvalidDateTime)?
+        }
+        None => return Err(ApiError::MandatoryEndDate),
+    };
+
+    let user_id = repositories::users::find_user(&state.pool, &user_id)
+        .await?
+        .ok_or(ApiError::UserNotFound)?
+        .id;
+
+    let impedances: Vec<ImpedanceResponse> =
+        repositories::measurements::find_impedances_between_dates(
+            &state.pool,
+            &user_id,
+            &start_date,
+            &end_date,
+        )
+        .await?
+        .into_iter()
+        .map(|i: Impedance| ImpedanceResponse {
+            impedance_id: i.impedance_id.into(),
+            measured_at: DateTime::<Local>::from(i.measured_at).to_rfc3339(),
+            ohms: i.ohms.into(),
+        })
+        .collect();
+
+    if let Some(accept_encoding_header) = headers.get(ACCEPT) {
+        match accept_encoding_header.to_str().unwrap() {
+            "text/csv" => {
+                let response = Response::builder()
+                    .status(StatusCode::OK)
+                    .header(CONTENT_TYPE, "text/csv")
+                    .header(CONTENT_DISPOSITION, "attachment; filename=\"weights.csv\"")
+                    .body(generate_impedances_csv(impedances))
+                    .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
+
+                Ok(response)
+            }
+            "application/json" => {
+                let response = Response::builder()
+                    .status(StatusCode::OK)
+                    .header(CONTENT_TYPE, "application/json")
+                    .body(json!(impedances).to_string())
+                    .map_err(|e| ApiError::Unexpected(Box::new(e)))?;
+
+                Ok(response)
+            }
+            _ => Err(ApiError::UnsupportedMediaType),
+        }
+    } else {
+        Err(ApiError::UnsupportedMediaType)
+    }
+}
+
+fn generate_impedances_csv(impedances: Vec<ImpedanceResponse>) -> String {
+    impedances.iter().fold(
+        "impedance_id,measured_at,ohms".to_string(),
+        |mut acc, weight| {
+            let row = format!(
+                "\n{},{},{}",
+                weight.impedance_id, weight.measured_at, weight.ohms
             );
             acc.push_str(row.as_str());
             acc
