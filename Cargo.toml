@@ -23,4 +23,4 @@ sqlx = { version = "0.8.6", features = [
   "chrono",
   "migrate",
 ] }
-handlebars = { version = "6.3.2" }
+handlebars = { version = "6.4.0" }
