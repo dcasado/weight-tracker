@@ -12,6 +12,8 @@ pub enum ApiError {
     MandatoryStartDate,
     MandatoryEndDate,
     InvalidUserId,
+    InvalidBirthdate,
+    NegativeHeight,
     InvalidDateTime,
     NegativeWeight,
     WeightNotFound,
@@ -38,6 +40,14 @@ impl IntoResponse for ApiError {
                 "Query parameter end_date is mandatory".to_string(),
             ),
             Self::InvalidUserId => (StatusCode::BAD_REQUEST, "user_id must be valid".to_string()),
+            Self::InvalidBirthdate => (
+                StatusCode::BAD_REQUEST,
+                "birthdate must be a valid date".to_string(),
+            ),
+            Self::NegativeHeight => (
+                StatusCode::BAD_REQUEST,
+                "height must be a positive number".to_string(),
+            ),
             Self::InvalidDateTime => (
                 StatusCode::BAD_REQUEST,
                 "date_time must be a valid date".to_string(),

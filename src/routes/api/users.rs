@@ -7,13 +7,15 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use crate::app_state::AppState;
-use crate::domain::user::{UserId, UserName};
+use crate::domain::user::{BirthDate, Height, UserId, UserName};
 use crate::error::ApiError;
 use crate::repositories;
 
 #[derive(Deserialize)]
 struct PostUser {
     name: String,
+    birthdate: String,
+    height: u16,
 }
 
 pub fn users(state: AppState) -> Router {
@@ -47,8 +49,10 @@ async fn add_user(
     Json(body): Json<PostUser>,
 ) -> Result<StatusCode, ApiError> {
     let name: UserName = UserName::new(body.name);
+    let birthdate: BirthDate = BirthDate::new(body.birthdate.as_str())?;
+    let height: Height = Height::new(body.height);
 
-    repositories::users::insert_user(&state.pool, &name).await?;
+    repositories::users::insert_user(&state.pool, &name, &birthdate, &height).await?;
 
     Ok(StatusCode::CREATED)
 }

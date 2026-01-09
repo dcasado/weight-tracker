@@ -1,3 +1,5 @@
+use crate::error::ApiError;
+
 pub struct User {
     pub id: UserId,
     pub name: UserName,
@@ -58,5 +60,35 @@ impl From<UserName> for String {
 impl From<&UserName> for String {
     fn from(value: &UserName) -> Self {
         value.0.clone()
+    }
+}
+
+pub struct BirthDate(String);
+
+impl BirthDate {
+    pub fn new(value: &str) -> Result<Self, ApiError> {
+        let date =
+            chrono::DateTime::parse_from_rfc3339(value).map_err(|_| ApiError::InvalidBirthdate)?;
+        Ok(Self(date.to_rfc3339()))
+    }
+}
+
+impl From<&BirthDate> for String {
+    fn from(value: &BirthDate) -> Self {
+        value.0.clone()
+    }
+}
+
+pub struct Height(u16);
+
+impl Height {
+    pub fn new(value: u16) -> Self {
+        Self(value)
+    }
+}
+
+impl From<&Height> for f64 {
+    fn from(value: &Height) -> Self {
+        value.0.into()
     }
 }
