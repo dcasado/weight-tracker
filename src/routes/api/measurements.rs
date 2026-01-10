@@ -132,6 +132,10 @@ async fn get_weights(
         None => return Err(ApiError::MandatoryEndDate),
     };
 
+    if start_date > end_date {
+        return Err(ApiError::StartDateGreaterThanEndDate);
+    }
+
     let user_id = repositories::users::find_user(&state.pool, &user_id)
         .await?
         .ok_or(ApiError::UserNotFound)?
@@ -217,6 +221,10 @@ async fn get_impedances(
         }
         None => return Err(ApiError::MandatoryEndDate),
     };
+
+    if start_date > end_date {
+        return Err(ApiError::StartDateGreaterThanEndDate);
+    }
 
     let user_id = repositories::users::find_user(&state.pool, &user_id)
         .await?

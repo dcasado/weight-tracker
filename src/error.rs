@@ -13,6 +13,7 @@ pub enum ApiError {
     MandatoryEndDate,
     InvalidUserId,
     InvalidDateTime,
+    StartDateGreaterThanEndDate,
     NegativeWeight,
     WeightNotFound,
     ImpedanceNotFound,
@@ -41,6 +42,10 @@ impl IntoResponse for ApiError {
             Self::InvalidDateTime => (
                 StatusCode::BAD_REQUEST,
                 "date_time must be a valid date".to_string(),
+            ),
+            Self::StartDateGreaterThanEndDate => (
+                StatusCode::BAD_REQUEST,
+                "start_date cannot be greater than end_date".to_string(),
             ),
             Self::NegativeWeight => (
                 StatusCode::BAD_REQUEST,
