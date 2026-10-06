@@ -69,7 +69,7 @@ async fn render_chart(
             )
             .unwrap()
             .into(),
-        None => end_date.with_time(NaiveTime::MIN).unwrap() - Duration::days(30),
+        None => end_date.with_time(NaiveTime::MIN).unwrap() - Duration::days(90),
     };
 
     let weights: Vec<Weight> = repositories::measurements::find_weights_between_dates(
